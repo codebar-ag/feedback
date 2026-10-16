@@ -6,8 +6,10 @@ use App\Enums\ErrorCode;
 use App\Http\Middleware\ApplyProjectCors;
 use App\Http\Middleware\EnforceIpPolicy;
 use App\Http\Middleware\EnforceOriginPolicy;
+use App\Http\Middleware\NoIndex;
 use App\Http\Middleware\ResolveProject;
 use App\Http\Responses\ApiError;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -20,6 +22,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Validation\ValidationException;
+use Spatie\Health\Commands\RunHealthChecksCommand;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -29,10 +32,14 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         apiPrefix: '',
     )
+    ->withSchedule(function (Schedule $schedule): void {
+        $schedule->command(RunHealthChecksCommand::class)->everyFiveMinutes();
+    })
     ->withMiddleware(function (Middleware $middleware): void {
         // CORS is applied per project by ApplyProjectCors, the post size check
         // runs inside the route group so that 413 responses carry CORS headers.
         $middleware->remove([HandleCors::class, ValidatePostSize::class]);
+        $middleware->append(NoIndex::class);
 
         // The feedback chain must run before throttle:feedback.
         $middleware->priority([

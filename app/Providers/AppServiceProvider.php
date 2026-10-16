@@ -11,6 +11,13 @@ use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Activitylog\Models\Activity;
+use Spatie\Health\Checks\Checks\CacheCheck;
+use Spatie\Health\Checks\Checks\DatabaseCheck;
+use Spatie\Health\Checks\Checks\DebugModeCheck;
+use Spatie\Health\Checks\Checks\EnvironmentCheck;
+use Spatie\Health\Checks\Checks\OptimizedAppCheck;
+use Spatie\Health\Facades\Health;
+use Spatie\SecurityAdvisoriesHealthCheck\SecurityAdvisoriesCheck;
 
 final class AppServiceProvider extends ServiceProvider
 {
@@ -18,6 +25,20 @@ final class AppServiceProvider extends ServiceProvider
     {
         $this->configureRateLimiting();
         $this->configureActivityLog();
+        $this->configureHealthChecks();
+    }
+
+    /** Checks for Oh Dear (OH_DEAR_HEALTH_CHECK_*) and `php artisan health:check`. */
+    private function configureHealthChecks(): void
+    {
+        Health::checks([
+            DatabaseCheck::new(),
+            CacheCheck::new(),
+            DebugModeCheck::new(),
+            OptimizedAppCheck::new(),
+            EnvironmentCheck::new()->if($this->app->isProduction()),
+            SecurityAdvisoriesCheck::new()->lastDayOfMonth(),
+        ]);
     }
 
     /**

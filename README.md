@@ -37,7 +37,7 @@ Das Repository enthält die **Laravel-API** im Wurzelverzeichnis und das **Widge
 
 ## API installieren
 
-Voraussetzungen: PHP 8.5 (`pdo_pgsql`, `pdo_mysql` oder `pdo_sqlite`, `fileinfo`, `intl`), Composer und eine Datenbank: PostgreSQL 17 (empfohlen), MySQL 8 / MariaDB oder SQLite. Kein Queue-Worker, kein Redis, kein Objektspeicher.
+Voraussetzungen: PHP 8.5 (`pdo_pgsql`, `pdo_mysql` oder `pdo_sqlite`, `fileinfo`, `intl`), Composer und eine Datenbank: PostgreSQL 17 (empfohlen), MySQL 8 / MariaDB oder SQLite. Kein Queue-Worker, kein Redis, kein Objektspeicher. Es gibt nichts zu seeden: Projekte legst du per Artisan an.
 
 ```bash
 git clone https://github.com/codebar-ag/feedback.git && cd feedback
@@ -56,7 +56,8 @@ Zum Ausprobieren genügt SQLite: `touch database/database.sqlite && php artisan 
 - MySQL: die Migration legt `LONGBLOB` an, dafür `max_allowed_packet` mindestens 16 MB. PostgreSQL (`bytea`) und SQLite brauchen nichts.
 - Hinter Load Balancer oder CDN `TRUSTED_PROXIES` setzen, sonst sehen IP-Freigabe und Rate Limits die Adresse des Proxys.
 - Keine eigenen CORS-Header im Webserver für `/v1/`, die API setzt sie pro Projekt.
-- Health-Check: `GET /up` (200 `{"status":"ok"}`, 503 bei Datenbankproblem).
+- Im Browser zeigt die API nichts an: `/` und alle unbekannten Pfade antworten mit 404, jede Antwort trägt `X-Robots-Tag: noindex` und `robots.txt` sperrt Suchmaschinen.
+- Health-Check: `GET /up` (200 `{"status":"ok"}`, 503 bei Datenbankproblem). Für Oh Dear zusätzlich den Endpoint aktivieren (siehe Konfiguration). Die Checks (Datenbank, Cache, Debug-Modus, Optimierung, Umgebung, Sicherheitshinweise) laufen auch per Scheduler (`php artisan schedule:run` jede Minute).
 - Die Screenshots liegen in der Datenbank: tägliche Sicherung mit Wiederherstellungstest. Löschfristen regelst du direkt in der Datenbank.
 
 ## Konfiguration
@@ -72,6 +73,8 @@ Alles in [`config/feedback.php`](config/feedback.php), gesetzt über `.env`:
 | `FEEDBACK_MIN_ELAPSED_MS` | `2000` | Mindestzeit zwischen Öffnen und Senden, schnellere Anfragen werden still verworfen, `0` = aus |
 | `TRUSTED_PROXIES` | leer | Kommagetrennte Proxy-IPs/CIDR oder `*` |
 | `CACHE_STORE` | `file` | Store der Rate Limits: `file` für einen Server, `database` oder `redis` bei mehreren Instanzen |
+| `DB_READ_HOST`, `DB_WRITE_HOST` | `DB_HOST` | Getrennte Hosts für Lese-Replica und Primary (auch Laravel Cloud) |
+| `OH_DEAR_HEALTH_CHECK_ENABLED`, `OH_DEAR_HEALTH_CHECK_SECRET`, `OH_DEAR_HEALTH_CHECK_PATH` | aus, –, `/oh-dear-health-check-results` | [Oh Dear Application Health](https://ohdear.app/docs/features/application-health-monitoring) über `spatie/laravel-health` |
 
 Dazu kommt ein optionales Tageslimit pro Projekt (`--limit`). Gespeichert wird die volle IP-Adresse (IPv4 oder IPv6). Einen Standort ermittelt die App bewusst nicht, das kann eine andere Anwendung aus der IP übernehmen.
 

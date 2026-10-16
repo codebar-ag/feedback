@@ -34,5 +34,7 @@
         <env name="FEEDBACK_LIMIT_PER_PROJECT_PER_MINUTE" value="0"/>
         <env name="FEEDBACK_MIN_ELAPSED_MS" value="0"/>
         <env name="TRUSTED_PROXIES" value=""/>
+        <env name="OH_DEAR_HEALTH_CHECK_ENABLED" value="true"/>
+        <env name="OH_DEAR_HEALTH_CHECK_SECRET" value="test-secret"/>
     </php>
 </phpunit>
