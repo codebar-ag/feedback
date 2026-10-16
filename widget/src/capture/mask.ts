@@ -14,11 +14,13 @@ export const ALWAYS_MASKED = ['input[type="password"]', '[autocomplete^="cc-"]']
 /** Document rectangles of all masked elements (concept 4.8). */
 export function maskRects(selectors: string[], root: ParentNode = document): Rect[] {
   const rects: Rect[] = [];
-  let elements: Element[];
-  try {
-    elements = Array.from(root.querySelectorAll([...ALWAYS_MASKED, ...selectors].join(',')));
-  } catch {
-    elements = Array.from(root.querySelectorAll(ALWAYS_MASKED.join(',')));
+  const elements = new Set<Element>();
+  for (const selector of [...ALWAYS_MASKED, ...selectors]) {
+    try {
+      for (const el of Array.from(root.querySelectorAll(selector))) elements.add(el);
+    } catch {
+      // Invalid selector from the options: skip it.
+    }
   }
   for (const el of elements) {
     const r = el.getBoundingClientRect();

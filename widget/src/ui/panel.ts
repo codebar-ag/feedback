@@ -1,4 +1,4 @@
-import { h } from './dom';
+import { h } from './dom.js';
 
 /** Panel frame: role=dialog with aria-label (there is no visible title). */
 export function createPanel(header: HTMLElement, body: HTMLElement): HTMLElement {

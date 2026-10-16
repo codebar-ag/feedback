@@ -2,9 +2,9 @@
  * Script tag build: window.CodebarFeedback.init({...}). The screenshot chunk
  * is loaded relative to this script's URL.
  */
-import { initWith } from './init';
-import type { FeedbackInstance, FeedbackOptions } from './types';
-import { VERSION } from './version';
+import { initWith } from './init.js';
+import type { FeedbackInstance, FeedbackOptions } from './types.js';
+import { VERSION } from './version.js';
 
 const base = (document.currentScript as HTMLScriptElement | null)?.src || location.href;
 

@@ -1,4 +1,4 @@
-import type * as Snapshot from './snapshot';
+import type * as Snapshot from './snapshot.js';
 
 export type CaptureModule = typeof Snapshot;
 export type CaptureLoader = () => Promise<CaptureModule>;

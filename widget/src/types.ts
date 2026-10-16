@@ -1,4 +1,4 @@
-import type { Messages } from './i18n/index';
+import type { Messages } from './i18n/index.js';
 
 export type Locale = 'de_CH' | 'fr_CH' | 'en_CH' | 'it_CH';
 

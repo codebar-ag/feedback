@@ -30,7 +30,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/feedback.js"
     },
-    "./iife": "./dist/feedback.iife.js",
     "./package.json": "./package.json"
   },
   "engines": {

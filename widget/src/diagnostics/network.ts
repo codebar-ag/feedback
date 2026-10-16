@@ -1,5 +1,5 @@
-import { RingBuffer } from './buffer';
-import { stripQuery } from './redact';
+import { RingBuffer } from './buffer.js';
+import { stripQuery } from './redact.js';
 
 export interface NetworkEntry {
   method: string;
@@ -26,6 +26,7 @@ export function networkBuffer(max: number): RingBuffer<NetworkEntry> {
  * method, URL without query, status and duration. Never headers or bodies.
  */
 export function captureNetwork(buffer: RingBuffer<NetworkEntry>): () => void {
+  if (unwrapped) return () => {};
   const record = (method: string, url: string, status: number, started: number): void => {
     if (status > 0 && status < 400) return;
     try {

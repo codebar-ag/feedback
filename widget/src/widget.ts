@@ -1,20 +1,20 @@
-import { LiveRegion, trapTab } from './a11y/focus';
-import { AnnotationLayer } from './annotate/layer';
-import { History } from './annotate/history';
-import type { Tool } from './annotate/tools';
-import { sendFeedback } from './api/client';
-import { composeShot } from './capture/compose';
-import { loadCapture, preloadCapture } from './capture/load';
-import { resolveOptions, loadProjectColor, type ResolvedOptions } from './config';
-import { RingBuffer } from './diagnostics/buffer';
-import { captureConsole } from './diagnostics/console';
-import { collectClient, prefetchHints } from './diagnostics/meta';
-import { captureNetwork, nativeFetch, networkBuffer, type NetworkEntry } from './diagnostics/network';
-import { DraftStore, uuid } from './draft/storage';
-import { Emitter } from './events';
-import { bcp47, resolveLocale, translator, type Translator } from './i18n/index';
-import { Store, type Action, type State } from './store';
-import { deriveTheme, parseColor, themeVars } from './theme/derive';
+import { LiveRegion, trapTab } from './a11y/focus.js';
+import { AnnotationLayer } from './annotate/layer.js';
+import { History } from './annotate/history.js';
+import type { Tool } from './annotate/tools.js';
+import { sendFeedback } from './api/client.js';
+import { composeShot } from './capture/compose.js';
+import { loadCapture, preloadCapture } from './capture/load.js';
+import { resolveOptions, loadProjectColor, type ResolvedOptions } from './config.js';
+import { RingBuffer } from './diagnostics/buffer.js';
+import { captureConsole } from './diagnostics/console.js';
+import { collectClient, prefetchHints } from './diagnostics/meta.js';
+import { captureNetwork, nativeFetch, networkBuffer, type NetworkEntry } from './diagnostics/network.js';
+import { DraftStore, uuid } from './draft/storage.js';
+import { Emitter } from './events.js';
+import { bcp47, resolveLocale, translator, type Translator } from './i18n/index.js';
+import { Store, type Action, type State } from './store.js';
+import { deriveTheme, parseColor, themeVars } from './theme/derive.js';
 import type {
   FeedbackEventName,
   FeedbackEvents,
@@ -24,17 +24,17 @@ import type {
   Identity,
   Locale,
   ShotMeta,
-} from './types';
-import { raf, h } from './ui/dom';
-import { createForm, type FormErrors, type FormView } from './ui/form';
-import { createHeader } from './ui/header';
-import { createHost, type Host } from './ui/host';
-import { createLauncher, type Launcher } from './ui/launcher';
-import { createPanel } from './ui/panel';
-import { createStatusPage, type StatusPage } from './ui/status-page';
-import { createToolbar, type Toolbar } from './ui/toolbar';
-import { createToolsRow, type ToolsRow } from './ui/tools-row';
-import { VERSION } from './version';
+} from './types.js';
+import { raf, h } from './ui/dom.js';
+import { createForm, type FormErrors, type FormView } from './ui/form.js';
+import { createHeader } from './ui/header.js';
+import { createHost, type Host } from './ui/host.js';
+import { createLauncher, type Launcher } from './ui/launcher.js';
+import { createPanel } from './ui/panel.js';
+import { createStatusPage, type StatusPage } from './ui/status-page.js';
+import { createToolbar, type Toolbar } from './ui/toolbar.js';
+import { createToolsRow, type ToolsRow } from './ui/tools-row.js';
+import { VERSION } from './version.js';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SUCCESS_CLOSE_MS = 3000;
@@ -613,7 +613,7 @@ export class Widget implements FeedbackInstance {
     if (this.destroyed) return;
 
     if (result.ok) {
-      await this.draft.clear();
+      void this.draft.clear();
       this.form.email.value = '';
       this.form.message.value = '';
       this.form.honeypot.value = '';

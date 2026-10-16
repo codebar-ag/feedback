@@ -1,4 +1,4 @@
-import type { FeedbackPayload } from '../types';
+import type { FeedbackPayload } from '../types.js';
 
 export type SendResult =
   | { ok: true; id: string; status: number }

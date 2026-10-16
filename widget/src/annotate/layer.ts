@@ -1,7 +1,7 @@
-import { h } from '../ui/dom';
-import type { Mark, ShotMeta } from '../types';
-import type { History } from './history';
-import { drawMarks, extendMark, finishMark, startMark, type Tool } from './tools';
+import { h } from '../ui/dom.js';
+import type { Mark, ShotMeta } from '../types.js';
+import type { History } from './history.js';
+import { drawMarks, extendMark, finishMark, startMark, type Tool } from './tools.js';
 
 /**
  * Annotation surface (concept 4.11.6 step 3): the screenshot is shown in

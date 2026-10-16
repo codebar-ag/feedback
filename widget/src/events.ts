@@ -1,4 +1,4 @@
-import type { FeedbackEventName, FeedbackEvents } from './types';
+import type { FeedbackEventName, FeedbackEvents } from './types.js';
 
 type Handler = (...args: never[]) => unknown;
 

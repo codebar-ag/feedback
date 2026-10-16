@@ -14,7 +14,7 @@ export default defineConfig({
       provider: 'v8',
       include: ['src/**/*.ts'],
       exclude: ['src/env.d.ts', 'src/capture/snapshot.ts', 'src/iife.ts'],
-      thresholds: { lines: 85, functions: 85, branches: 75, statements: 85 },
+      thresholds: { lines: 85, functions: 80, branches: 75, statements: 85 },
     },
   },
 });

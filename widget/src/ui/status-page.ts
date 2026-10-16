@@ -1,6 +1,6 @@
-import type { MessageKey, Translator } from '../i18n/index';
-import { h, text } from './dom';
-import { icon } from './icons';
+import type { MessageKey, Translator } from '../i18n/index.js';
+import { h, text } from './dom.js';
+import { icon } from './icons.js';
 
 export interface StatusPage {
   el: HTMLElement;

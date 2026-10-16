@@ -3,7 +3,7 @@
  * 4.11.6 step 2). Never part of the core bundle.
  */
 import { domToCanvas } from 'modern-screenshot';
-import { MASK_COLOR, maskRects, paintMasks, pickScale } from './mask';
+import { MASK_COLOR, maskRects, paintMasks, pickScale } from './mask.js';
 
 export interface CaptureOptions {
   exclude: Element[];

@@ -1,4 +1,4 @@
-import { CSS } from './tokens.css';
+import { CSS } from './tokens.css.js';
 
 export interface Host {
   host: HTMLElement;

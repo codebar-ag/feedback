@@ -1,4 +1,4 @@
-import type { Mark } from '../types';
+import type { Mark } from '../types.js';
 
 type Step = { kind: 'add' } | { kind: 'clear'; previous: Mark[] };
 

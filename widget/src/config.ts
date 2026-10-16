@@ -1,5 +1,5 @@
-import { resolveLocale } from './i18n/index';
-import type { FeedbackOptions, Locale, ScreenshotMode } from './types';
+import { resolveLocale } from './i18n/index.js';
+import type { FeedbackOptions, Locale, ScreenshotMode } from './types.js';
 
 export interface ResolvedOptions {
   projectKey: string;

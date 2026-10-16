@@ -1,5 +1,5 @@
-import { drawMarks } from '../annotate/tools';
-import type { Mark } from '../types';
+import { drawMarks } from '../annotate/tools.js';
+import type { Mark } from '../types.js';
 
 async function decode(blob: Blob): Promise<CanvasImageSource & { width: number; height: number }> {
   if (typeof createImageBitmap === 'function') return createImageBitmap(blob);

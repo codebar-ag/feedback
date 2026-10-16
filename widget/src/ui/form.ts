@@ -1,6 +1,6 @@
-import type { Identity } from '../types';
-import type { Translator } from '../i18n/index';
-import { h, setAttrs, text } from './dom';
+import type { Identity } from '../types.js';
+import type { Translator } from '../i18n/index.js';
+import { h, setAttrs, text } from './dom.js';
 
 export interface FormErrors {
   email?: string;

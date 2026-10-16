@@ -1,5 +1,5 @@
-import type { ShotMeta } from '../types';
-import { ShotDb } from './idb';
+import type { ShotMeta } from '../types.js';
+import { ShotDb } from './idb.js';
 
 export interface Draft {
   v: 1;
@@ -85,8 +85,8 @@ export class DraftStore {
     }
     let blob: Blob | null = null;
     if (draft.shot) {
-      const record = await this.db.get<{ blob: Blob }>(this.tabId());
-      blob = record?.blob instanceof Blob ? record.blob : null;
+      const record = await this.db.get<{ data: ArrayBuffer; type: string }>(this.tabId());
+      blob = record?.data ? new Blob([record.data], { type: record.type || 'image/jpeg' }) : null;
       if (!blob) draft.shot = null;
     }
     return { draft, blob };
@@ -110,7 +110,12 @@ export class DraftStore {
       this.memory.blob = blob;
       return true;
     }
-    return this.db.put(this.tabId(), { blob });
+    // Stored as ArrayBuffer: Blobs in IndexedDB are unreliable in some Safari versions.
+    try {
+      return await this.db.put(this.tabId(), { data: await blob.arrayBuffer(), type: blob.type });
+    } catch {
+      return false;
+    }
   }
 
   async clearShot(): Promise<void> {

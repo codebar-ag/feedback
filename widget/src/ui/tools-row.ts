@@ -1,6 +1,6 @@
-import type { Translator } from '../i18n/index';
-import { h, setAttrs, text } from './dom';
-import { icon } from './icons';
+import type { Translator } from '../i18n/index.js';
+import { h, setAttrs, text } from './dom.js';
+import { icon } from './icons.js';
 
 export interface ToolsRow {
   el: HTMLElement;

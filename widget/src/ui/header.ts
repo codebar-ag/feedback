@@ -1,5 +1,5 @@
-import { h, setAttrs } from './dom';
-import { icon } from './icons';
+import { h, setAttrs } from './dom.js';
+import { icon } from './icons.js';
 
 /** Slim header in the project color: sparkle left, X right, no title. */
 export function createHeader(onClose: () => void): { el: HTMLElement; close: HTMLButtonElement; update(label: string): void } {

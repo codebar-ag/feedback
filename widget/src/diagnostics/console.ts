@@ -1,6 +1,6 @@
-import type { ConsoleLevel } from '../types';
-import type { RingBuffer } from './buffer';
-import { redact, stripQuery } from './redact';
+import type { ConsoleLevel } from '../types.js';
+import type { RingBuffer } from './buffer.js';
+import { redact, stripQuery } from './redact.js';
 
 type Off = () => void;
 
@@ -30,7 +30,11 @@ export interface ConsoleCaptureOptions {
  * called first and unchanged. Installing twice is a no-op, the returned
  * function restores everything.
  */
+let installed = false;
+
 export function captureConsole(buffer: RingBuffer, options: ConsoleCaptureOptions): Off {
+  if (installed) return () => {};
+  installed = true;
   const offs: Off[] = [];
   const add = (type: string, message: string, extra: Partial<Parameters<RingBuffer['push']>[0]> = {}): void => {
     try {
@@ -102,5 +106,6 @@ export function captureConsole(buffer: RingBuffer, options: ConsoleCaptureOption
 
   return () => {
     for (const off of offs.reverse()) off();
+    installed = false;
   };
 }

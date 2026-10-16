@@ -1,5 +1,5 @@
-import { MARKER_COLOR, TOKENS } from '../ui/tokens.css';
-import type { Mark, MarkerMark, RectMark } from '../types';
+import { MARKER_COLOR, TOKENS } from '../ui/tokens.css.js';
+import type { Mark, MarkerMark, RectMark } from '../types.js';
 
 export type Tool = 'rect' | 'marker';
 

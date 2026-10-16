@@ -1,6 +1,6 @@
-import { setCaptureLoader, type CaptureLoader } from './capture/load';
-import type { FeedbackInstance, FeedbackOptions } from './types';
-import { Widget } from './widget';
+import { setCaptureLoader, type CaptureLoader } from './capture/load.js';
+import type { FeedbackInstance, FeedbackOptions } from './types.js';
+import { Widget } from './widget.js';
 
 let instance: Widget | null = null;
 let ready: Promise<FeedbackInstance> | null = null;

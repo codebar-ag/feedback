@@ -1,8 +1,8 @@
-import de_CH from './de_CH';
-import en_CH from './en_CH';
-import fr_CH from './fr_CH';
-import it_CH from './it_CH';
-import type { Locale } from '../types';
+import de_CH from './de_CH.js';
+import en_CH from './en_CH.js';
+import fr_CH from './fr_CH.js';
+import it_CH from './it_CH.js';
+import type { Locale } from '../types.js';
 
 export type Messages = typeof de_CH;
 export type MessageKey = keyof Messages;
