@@ -8,6 +8,7 @@
 <p align="center">
   <a href="https://github.com/codebar-ag/feedback/actions/workflows/tests.yml"><img src="https://github.com/codebar-ag/feedback/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
   <a href="https://github.com/codebar-ag/feedback/actions/workflows/e2e.yml"><img src="https://github.com/codebar-ag/feedback/actions/workflows/e2e.yml/badge.svg" alt="E2E"></a>
+  <a href="https://www.npmjs.com/package/@codebar-ag/feedback-widget"><img src="https://img.shields.io/npm/v/@codebar-ag/feedback-widget?label=npm" alt="npm"></a>
   <img src="https://img.shields.io/badge/PHP-8.5-777BB4?logo=php&logoColor=white" alt="PHP 8.5">
   <img src="https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white" alt="Laravel 13">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
