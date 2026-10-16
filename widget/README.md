@@ -34,7 +34,7 @@ Script-Tag (IIFE, globale Variable `CodebarFeedback`):
 </script>
 ```
 
-Alle Optionen, Methoden, Events, Framework-Beispiele, CSP-Hinweise und Fehlerbehebung: [README](https://github.com/codebar-ag/feedback.
+Alle Optionen, Methoden, Events, CSP-Hinweise und Fehlerbehebung: [README des Repositorys](https://github.com/codebar-ag/feedback#widget).
 
 ## Entwicklung
 
