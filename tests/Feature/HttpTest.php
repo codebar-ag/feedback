@@ -22,12 +22,23 @@ it('reports a failing database as down', function (): void {
     }
 });
 
-it('blocks browser access to the root and unknown routes', function (): void {
-    test()->get('/', ['Accept' => 'text/html'])
-        ->assertNotFound()
-        ->assertExactJson(['error' => ['code' => 'not_found']])
-        ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
-    test()->get('/api/feedback')->assertNotFound();
+it('blocks unknown paths with an empty 403', function (string $path): void {
+    test()->get($path)->assertForbidden()->assertContent('')->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+})->with(['/', '/api/feedback', '/index.php', '/.env']);
+
+it('blocks every browser navigation, also to existing routes', function (string $path): void {
+    $project = FeedbackProject::factory()->create(['allowed_origins' => [TEST_ORIGIN]]);
+    $path = str_replace('{key}', $project->public_key, $path);
+
+    test()->get($path, ['Sec-Fetch-Mode' => 'navigate', 'Sec-Fetch-Dest' => 'document'])->assertForbidden()->assertContent('');
+    test()->get($path, ['Sec-Fetch-Dest' => 'document'])->assertForbidden();
+})->with(['/', '/up', '/v1/projects/{key}/config', '/oh-dear-health-check-results']);
+
+it('keeps the widget and monitoring working', function (): void {
+    $project = FeedbackProject::factory()->create(['allowed_origins' => [TEST_ORIGIN]]);
+
+    test()->get("/v1/projects/{$project->public_key}/config", ['Origin' => TEST_ORIGIN, 'Sec-Fetch-Mode' => 'cors', 'Sec-Fetch-Dest' => 'empty'])->assertOk();
+    test()->getJson('/up')->assertOk();
 });
 
 it('renders wrong methods as JSON 405', function (): void {
