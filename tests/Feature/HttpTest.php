@@ -43,3 +43,8 @@ it('exposes no web or auth routes', function (): void {
 
     expect($uris)->toBe(['oh-dear-health-check-results', 'up', 'v1/projects/{publicKey}/config', 'v1/projects/{publicKey}/feedback', 'v1/projects/{publicKey}/feedback']);
 });
+
+it('seeds without errors (deploys run migrate --seed)', function (): void {
+    test()->artisan('db:seed', ['--force' => true])->assertExitCode(0);
+    test()->artisan('migrate', ['--seed' => true, '--force' => true])->assertExitCode(0);
+});
