@@ -7,6 +7,7 @@ namespace App\Support;
 use App\Enums\PrecisionMode;
 use DeviceDetector\ClientHints;
 use DeviceDetector\DeviceDetector;
+use DeviceDetector\Parser\AbstractParser;
 
 /**
  * Resolves OS, browser and device from the raw user agent plus optional
@@ -21,6 +22,9 @@ final readonly class UserAgentParser
     public function parse(?string $userAgent, ?array $uaData): ParsedAgent
     {
         $hints = $uaData !== null ? ClientHints::factory(self::hintHeaders($uaData)) : null;
+        // Keep full versions (e.g. macOS 26.6.2), detection is truncated to minor by default.
+        AbstractParser::setVersionTruncation(AbstractParser::VERSION_TRUNCATION_NONE);
+
         $detector = new DeviceDetector($userAgent ?? '', $hints);
         $detector->discardBotInformation();
         $detector->parse();

@@ -23,6 +23,8 @@ trait InteractsWithFeedback
 
         if (is_string($by) && trim($by) !== '') {
             Context::add('activity_by', trim($by));
+        } else {
+            Context::forget('activity_by');
         }
     }
 

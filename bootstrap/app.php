@@ -3,6 +3,10 @@
 declare(strict_types=1);
 
 use App\Enums\ErrorCode;
+use App\Http\Middleware\ApplyProjectCors;
+use App\Http\Middleware\EnforceIpPolicy;
+use App\Http\Middleware\EnforceOriginPolicy;
+use App\Http\Middleware\ResolveProject;
 use App\Http\Responses\ApiError;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
@@ -13,6 +17,8 @@ use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Middleware\HandleCors;
 use Illuminate\Http\Middleware\ValidatePostSize;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
@@ -28,6 +34,17 @@ return Application::configure(basePath: dirname(__DIR__))
         // CORS is applied per project by ApplyProjectCors, the post size check
         // runs inside the route group so that 413 responses carry CORS headers.
         $middleware->remove([HandleCors::class, ValidatePostSize::class]);
+
+        // The feedback chain must run before throttle:feedback (concept 12.3).
+        $middleware->priority([
+            ResolveProject::class,
+            ApplyProjectCors::class,
+            ValidatePostSize::class,
+            EnforceOriginPolicy::class,
+            EnforceIpPolicy::class,
+            ThrottleRequests::class,
+            SubstituteBindings::class,
+        ]);
 
         // Behind a load balancer or CDN, list its addresses so that
         // $request->ip() is the client IP (IP policy, rate limits, geo).
