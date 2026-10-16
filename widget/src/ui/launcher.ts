@@ -6,7 +6,7 @@ export interface Launcher {
   update(open: boolean, label: string, showText: boolean): void;
 }
 
-/** Round icon button, sparkle when closed, cross when open (concept 4.11.4). */
+/** Round icon button, sparkle when closed, cross when open. */
 export function createLauncher(onClick: () => void, onIntent: () => void): Launcher {
   const el = h('button', { type: 'button', class: 'l', 'aria-haspopup': 'dialog', 'aria-expanded': 'false' });
   const label = h('span');

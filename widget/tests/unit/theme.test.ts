@@ -3,7 +3,7 @@ import { contrast, deriveTheme, parseColor, textOn, themeVars } from '../../src/
 import { TOKENS } from '../../src/ui/tokens.css.js';
 
 describe('theme', () => {
-  // Same values as tests/Unit/ProjectColorTest.php and concept 4.6.
+  // Same values as tests/Unit/ProjectColorTest.php.
   it.each([
     ['black', '#000000', '#FFFFFF', 21],
     ['white', '#FFFFFF', '#101F3C', 16.36],

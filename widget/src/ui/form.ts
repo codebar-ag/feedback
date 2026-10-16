@@ -21,7 +21,7 @@ export interface FormView {
 let seq = 0;
 
 /**
- * Form (concept 4.11.5): with identity "Senden als" + badge, otherwise only
+ * Form: with identity "Senden als" + badge, otherwise only
  * the required email field. No name field. Every field has a reserved
  * 16 px error line, so messages never shift the layout.
  */

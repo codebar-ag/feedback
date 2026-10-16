@@ -6,7 +6,7 @@ namespace App\Support;
 
 /**
  * Matches a browser Origin header against the allowed origin patterns of a
- * project (concept 5.4).
+ * project.
  *
  *   https://app.example.ch   exact origin (scheme, host, port)
  *   https://*.example.ch     every subdomain, not example.ch itself

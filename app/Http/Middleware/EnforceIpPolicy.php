@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Checks the client IP against the project's allowed IPs/CIDR ranges.
- * Responds with the same 403 body as the origin check (concept 5.2).
+ * Responds with the same 403 body as the origin check.
  */
 final class EnforceIpPolicy
 {

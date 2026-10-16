@@ -1,5 +1,5 @@
 /**
- * Redaction before anything leaves the browser (concept 4.7). Replaces
+ * Redaction before anything leaves the browser. Replaces
  * tokens, JWTs, secrets in key=value pairs, email addresses, card-like
  * numbers and long hex/base64 strings with [redacted].
  */

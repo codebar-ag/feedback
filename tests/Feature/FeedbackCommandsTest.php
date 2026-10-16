@@ -42,14 +42,13 @@ it('validates list options', function (): void {
     test()->artisan('feedback:list')->expectsOutputToContain('Keine Feedbacks')->assertExitCode(0);
 });
 
-it('shows an entry with metadata, console and note', function (): void {
+it('shows an entry with metadata and console', function (): void {
     postFeedback($this->project, [
         'screenshot' => fakeJpeg(200, 400),
         'console_log' => json_encode([['level' => 'error', 'message' => 'Boom']]),
         'submitted_from_url' => 'https://www.beispiel.ch/zwei',
     ])->assertCreated();
     $entry = FeedbackEntry::query()->sole();
-    $entry->update(['internal_note' => 'Ticket 42']);
 
     test()->artisan('feedback:show', ['id' => $entry->id])
         ->expectsOutputToContain('Alpha')
@@ -58,14 +57,13 @@ it('shows an entry with metadata, console and note', function (): void {
         ->expectsOutputToContain('200 × 400')
         ->expectsOutputToContain('1 Einträge')
         ->expectsOutputToContain('Gesendet von')
-        ->expectsOutputToContain('Notiz: Ticket 42')
         ->assertExitCode(0);
 
     Artisan::call('feedback:show', ['id' => $entry->id, '--json' => true]);
     $data = json_decode(Artisan::output(), true);
 
     expect($data)
-        ->toMatchArray(['id' => $entry->id, 'completed_at' => null, 'internal_note' => 'Ticket 42', 'email' => 'anna@beispiel.ch'])
+        ->toMatchArray(['id' => $entry->id, 'completed_at' => null, 'email' => 'anna@beispiel.ch'])
         ->and($data['project']['public_key'])->toBe($this->project->public_key)
         ->and($data['screenshot'])->toMatchArray(['mime' => 'image/jpeg', 'width' => 200, 'height' => 400])
         ->and($data['console_log'][0]['message'])->toBe('Boom')
@@ -129,17 +127,4 @@ it('completes and reopens entries', function (): void {
     expect($a->refresh()->completed_at)->toBeNull();
 
     test()->artisan('feedback:reopen', ['id' => [$a->id, 'nope']])->assertExitCode(1);
-});
-
-it('sets and clears the internal note', function (): void {
-    $entry = FeedbackEntry::factory()->for($this->project, 'project')->create();
-
-    test()->artisan('feedback:note', ['id' => $entry->id, 'note' => 'Ticket 42'])->expectsOutputToContain('Notiz gespeichert')->assertExitCode(0);
-    expect($entry->refresh()->internal_note)->toBe('Ticket 42');
-
-    test()->artisan('feedback:note', ['id' => $entry->id, '--clear' => true])->expectsOutputToContain('Notiz entfernt')->assertExitCode(0);
-    expect($entry->refresh()->internal_note)->toBeNull();
-
-    test()->artisan('feedback:note', ['id' => $entry->id])->assertExitCode(2);
-    test()->artisan('feedback:note', ['id' => 'nope', 'note' => 'x'])->assertExitCode(1);
 });

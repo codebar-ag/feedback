@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Support\ProjectColor;
 
-// Same values as widget/tests/unit/theme.test.ts and concept 4.6.
+// Same values as widget/tests/unit/theme.test.ts.
 it('derives the text color and contrast', function (string $input, string $primary, string $on, string $contrast): void {
     $color = ProjectColor::fromInput($input);
 

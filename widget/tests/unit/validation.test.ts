@@ -6,7 +6,7 @@ const t = translator('de_CH');
 const run = (email: string, message: string, needsEmail = true, shotRequired = false, hasShot = false) =>
   validate({ email, message, hasShot }, { needsEmail, shotRequired }, t);
 
-describe('form validation (concept 4.11.5)', () => {
+describe('form validation', () => {
   it('accepts a valid form', () => {
     expect(run(' anna@beispiel.ch ', ' Hallo ')).toEqual({});
   });

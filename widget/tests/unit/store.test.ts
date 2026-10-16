@@ -17,7 +17,7 @@ const ALL_ACTIONS: Action[] = [
   'BACK',
 ];
 
-// Concept 4.11.2: every transition, one test each.
+// Every transition of the state machine, one test each.
 const EXPECTED: [State, Action, State][] = [
   ['closed', 'OPEN', 'form'],
   ['form', 'CLOSE', 'closed'],

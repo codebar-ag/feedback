@@ -14,7 +14,7 @@ final class ShowFeedbackCommand extends Command
 
     protected $signature = 'feedback:show {id : Feedback ID} {--json : Output as JSON}';
 
-    protected $description = 'Show a feedback entry with metadata, console and note';
+    protected $description = 'Show a feedback entry with metadata and console';
 
     public function handle(): int
     {
@@ -46,18 +46,12 @@ final class ShowFeedbackCommand extends Command
         $this->components->twoColumnDetail('Browser', trim(($entry->browser_name ?? '?').' '.($entry->browser_version ?? '')).' ('.$entry->version_precision.')');
         $this->components->twoColumnDetail('Browserfenster', $entry->viewport_w.' × '.$entry->viewport_h);
         $this->components->twoColumnDetail('Auflösung', $entry->screen_w.' × '.$entry->screen_h.' @'.$entry->dpr);
-        $this->components->twoColumnDetail('Standort', implode(', ', array_filter([$entry->geo_city, $entry->geo_country, $entry->geo_postcode])) ?: '–');
         $this->components->twoColumnDetail('IP', $entry->ip ?? '–');
         $shot = self::screenshotMeta($entry);
         $this->components->twoColumnDetail('Screenshot', $shot === null ? ($entry->screenshot_error ?? 'keiner') : $shot['width'].' × '.$shot['height'].', '.$shot['bytes'].' Bytes');
         $this->components->twoColumnDetail('Konsole', count($entry->console_log ?? []).' Einträge');
         $this->newLine();
         $this->line($entry->message);
-
-        if ($entry->internal_note !== null) {
-            $this->newLine();
-            $this->line('Notiz: '.$entry->internal_note);
-        }
 
         return self::SUCCESS;
     }

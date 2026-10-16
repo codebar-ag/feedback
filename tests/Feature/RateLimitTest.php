@@ -9,7 +9,7 @@ beforeEach(function (): void {
     $this->project = FeedbackProject::factory()->create(['allowed_origins' => [TEST_ORIGIN]]);
 });
 
-it('has no limit unless configured', function (): void {
+it('has no limit when switched off with 0', function (): void {
     foreach (range(1, 15) as $i) {
         postFeedback($this->project)->assertCreated();
     }

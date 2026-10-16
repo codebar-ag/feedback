@@ -4,13 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use App\Enums\GeoSource;
-use App\Geo\CloudflareGeoLocator;
-use App\Geo\GeoLocator;
-use App\Geo\MaxMindGeoLocator;
-use App\Geo\NullGeoLocator;
 use App\Http\Middleware\ResolveProject;
-use GeoIp2\Database\Reader;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Context;
@@ -20,26 +14,6 @@ use Spatie\Activitylog\Models\Activity;
 
 final class AppServiceProvider extends ServiceProvider
 {
-    public function register(): void
-    {
-        $this->app->singleton(GeoLocator::class, function (): GeoLocator {
-            return match (GeoSource::fromConfig(config('feedback.geo'))) {
-                GeoSource::None => new NullGeoLocator,
-                GeoSource::Cloudflare => new CloudflareGeoLocator,
-                GeoSource::MaxMind => new MaxMindGeoLocator(function (): ?Reader {
-                    static $reader = null;
-                    $path = config('feedback.maxmind.database_path');
-
-                    if ($reader === null && is_string($path) && is_file($path)) {
-                        $reader = new Reader($path);
-                    }
-
-                    return $reader;
-                }),
-            };
-        });
-    }
-
     public function boot(): void
     {
         $this->configureRateLimiting();

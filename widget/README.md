@@ -1,4 +1,4 @@
-# @codebar/feedback-widget
+# @codebar-ag/feedback-widget
 
 Feedback-Widget von codebar: Launcher, Formular, Full-Page-Screenshot mit Markierungen (Rechteck, Marker) und technische Diagnose (Browser, System, Konsolenfehler). Vanilla TypeScript im Shadow DOM, ohne Laufzeit-Abhängigkeiten im Kern (≤ 20 KB gzip). Der Screenshot-Teil wird lazy geladen.
 
@@ -7,11 +7,11 @@ Das Widget sendet an die codebar-Feedback-API (Laravel), siehe [github.com/codeb
 ## Installation
 
 ```bash
-npm install @codebar/feedback-widget
+npm install @codebar-ag/feedback-widget
 ```
 
 ```ts
-import { initFeedback } from '@codebar/feedback-widget';
+import { initFeedback } from '@codebar-ag/feedback-widget';
 
 const feedback = await initFeedback({
   projectKey: 'fbk_live_…',
@@ -26,7 +26,7 @@ feedback.on('after_send', ({ id }) => console.log('Feedback gespeichert', id));
 Script-Tag (IIFE, globale Variable `CodebarFeedback`):
 
 ```html
-<script async src="https://unpkg.com/@codebar/feedback-widget/dist/feedback.iife.js" crossorigin="anonymous"></script>
+<script async src="https://unpkg.com/@codebar-ag/feedback-widget/dist/feedback.iife.js" crossorigin="anonymous"></script>
 <script>
   window.addEventListener('load', function () {
     CodebarFeedback.init({ projectKey: 'fbk_live_…', endpoint: 'https://feedback.codebar.ch', locale: 'de_CH' });

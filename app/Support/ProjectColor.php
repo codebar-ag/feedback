@@ -8,7 +8,7 @@ use App\Enums\ColorPreset;
 use InvalidArgumentException;
 
 /**
- * Project color and the tokens derived from it (concept 4.6). The widget
+ * Project color and the tokens derived from it. The widget
  * implements the same algorithm in widget/src/theme/derive.ts.
  */
 final readonly class ProjectColor

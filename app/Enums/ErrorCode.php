@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
-/** Machine readable error codes of the public API (concept 5.2). */
+/** Machine readable error codes of the public API. */
 enum ErrorCode: string
 {
     case OriginNotAllowed = 'origin_not_allowed';

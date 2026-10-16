@@ -20,7 +20,7 @@ const json = (status: number, body: unknown, headers: Record<string, string> = {
 const URL_ = 'https://api.example/v1/projects/k/feedback';
 
 describe('API client', () => {
-  it('builds multipart form data as in concept 5.2', () => {
+  it('builds the multipart form data of the API', () => {
     const form = toFormData({ ...payload, page_title: undefined }, new Blob(['x'], { type: 'image/jpeg' }));
     expect(form.get('message')).toBe('Hallo Welt');
     expect(form.get('client')).toBe('{"viewport":{"w":1,"h":2}}');

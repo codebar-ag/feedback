@@ -20,7 +20,7 @@ export async function prefetchHints(): Promise<void> {
   }
 }
 
-/** Browser and system data for the "client" field (concept 4.7). */
+/** Browser and system data for the "client" field. */
 export function collectClient(): Record<string, unknown> {
   const doc = document.documentElement;
   return {

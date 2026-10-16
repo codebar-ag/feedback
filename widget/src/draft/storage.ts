@@ -34,7 +34,7 @@ export function uuid(): string {
 }
 
 /**
- * Draft persistence (concept 4.11.3): text and state in sessionStorage
+ * Draft persistence: text and state in sessionStorage
  * (cbf:{key}:draft), the screenshot without burnt-in marks in IndexedDB
  * (cbf-{key}, store "shots", one record per tab). Storage errors (private
  * mode, quota) are swallowed, the widget then works without a draft.

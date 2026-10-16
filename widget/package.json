@@ -1,5 +1,5 @@
 {
-  "name": "@codebar/feedback-widget",
+  "name": "@codebar-ag/feedback-widget",
   "version": "1.0.0",
   "description": "codebar Feedback widget: launcher, form, full page screenshot with annotations and diagnostics.",
   "license": "MIT",
@@ -9,7 +9,7 @@
     "url": "git+https://github.com/codebar-ag/feedback.git",
     "directory": "widget"
   },
-  "homepage": "https://github.com/codebar-ag/feedback/blob/main/docs/widget-setup.md",
+  "homepage": "https://github.com/codebar-ag/feedback#widget",
   "keywords": [
     "feedback",
     "widget",
@@ -33,7 +33,7 @@
     "./package.json": "./package.json"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=26"
   },
   "scripts": {
     "dev": "npm run build && node --experimental-strip-types tests/e2e/server.ts",
@@ -49,7 +49,8 @@
     "check": "npm run lint && npm run typecheck && npm run test && npm run build && npm run size && npm run publint && npm run attw",
     "e2e": "playwright test -c playwright.config.ts",
     "e2e:full": "NODE_PATH=$PWD/node_modules playwright test -c ../e2e/playwright.config.ts",
-    "publish:api": "node scripts/publish-api.mjs"
+    "publish:api": "node scripts/publish-api.mjs",
+    "screenshots": "npm run build && node scripts/screenshots.mjs"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",

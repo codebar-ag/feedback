@@ -1,5 +1,5 @@
 /**
- * Design tokens and styles (concept 4.6 and 4.11.4). Font sizes: 13 (labels,
+ * Design tokens and styles. Font sizes: 13 (labels,
  * errors), 15 (text, fields, buttons), 18 (status title), 14 for the toolbar
  * "Done" button. No other sizes, no dark mode.
  */

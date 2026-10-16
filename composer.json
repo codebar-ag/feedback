@@ -12,7 +12,6 @@
     "license": "MIT",
     "require": {
         "php": "^8.5",
-        "geoip2/geoip2": "^3.0",
         "laravel/framework": "^13.0",
         "matomo/device-detector": "^6.4",
         "spatie/laravel-activitylog": "^5.0"

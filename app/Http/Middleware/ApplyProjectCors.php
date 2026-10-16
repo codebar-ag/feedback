@@ -12,7 +12,7 @@ use Illuminate\Http\Response as IlluminateResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Dynamic CORS per project (concept 5.4). Answers the preflight and sets
+ * Dynamic CORS per project. Answers the preflight and sets
  * Access-Control-Allow-Origin to exactly the requesting origin, but only if
  * the project allows it. Never "*", never with credentials.
  */

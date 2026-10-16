@@ -23,13 +23,6 @@ arch('support classes are final and readonly')
     ->toBeFinal()
     ->toBeReadonly();
 
-arch('geo locators are final and readonly')
-    ->expect('App\Geo')
-    ->classes()
-    ->toBeFinal()
-    ->toBeReadonly()
-    ->ignoring('App\Geo\GeoLocator');
-
 arch('no auth dependencies (starter kit removed)')
     ->expect('App')
     ->not->toUse(['Illuminate\Auth', 'Illuminate\Contracts\Auth', 'Illuminate\Session', 'Illuminate\View']);

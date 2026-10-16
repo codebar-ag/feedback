@@ -1,5 +1,5 @@
 /**
- * State machine (concept 4.11.2). Exactly one state is active, transitions
+ * State machine. Exactly one state is active, transitions
  * not listed are ignored (e.g. open()/close() while capturing).
  */
 export type State = 'closed' | 'form' | 'capturing' | 'annotating' | 'sending' | 'success' | 'error';

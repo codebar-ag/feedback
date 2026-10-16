@@ -131,7 +131,7 @@ test('pen re-opens the annotation mode without re-rendering, trash removes the s
   expect((await draft(page))?.shot).toBeNull();
 });
 
-// Board 6: full page and privacy in the image.
+// full page and privacy in the image.
 test('sends the full page with masks and burnt-in marks', async ({ page }, info) => {
   const id = sid(info);
   const x = w(page);

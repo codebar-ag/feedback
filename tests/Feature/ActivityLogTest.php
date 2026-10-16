@@ -33,13 +33,12 @@ it('does not log incoming feedback', function (): void {
     expect(Activity::query()->count())->toBe(0);
 });
 
-it('logs completed, reopened and note changes without personal data', function (): void {
+it('logs completed and reopened without personal data', function (): void {
     $entry = FeedbackEntry::factory()->create(['email' => 'secret@beispiel.ch', 'name' => 'Geheim', 'message' => 'Sehr privat', 'ip' => '203.0.113.9']);
     Activity::query()->delete();
 
     test()->artisan('feedback:complete', ['id' => [$entry->id], '--by' => 'Anna'])->assertExitCode(0);
     test()->artisan('feedback:reopen', ['id' => [$entry->id]])->assertExitCode(0);
-    test()->artisan('feedback:note', ['id' => $entry->id, 'note' => 'Ticket 42'])->assertExitCode(0);
 
     // A change to personal fields alone is not logged.
     $entry->refresh()->update(['message' => 'geändert']);
@@ -47,7 +46,7 @@ it('logs completed, reopened and note changes without personal data', function (
     $log = Activity::query()->orderBy('id')->get();
     $serialized = $log->toJson();
 
-    expect($log->pluck('description')->all())->toBe(['completed', 'reopened', 'note_changed'])
+    expect($log->pluck('description')->all())->toBe(['completed', 'reopened'])
         ->and($log[0]->properties->all())->toEqual(['via' => 'artisan', 'by' => 'Anna'])
         ->and($serialized)->not->toContain('secret@beispiel.ch')
         ->and($serialized)->not->toContain('Geheim')
