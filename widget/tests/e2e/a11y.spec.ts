@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test';
 import { axe, expectState, fill, mock, settle, sid, takeShot, visit, w } from './helpers';
 
 test('axe: no violations in any state', async ({ page }, info) => {
+  // Seven axe runs plus the error page with its automatic retry: slow on CI runners.
+  test.slow();
   const id = sid(info);
   await mock(page, id, { responses: [{ status: 500 }, { status: 500 }] });
   await visit(page, id);

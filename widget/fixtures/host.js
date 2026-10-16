@@ -6,7 +6,10 @@ const options = {
   endpoint: `${location.origin}/s/${sid}`,
   locale: q.get('locale') || 'de_CH',
 };
-if (q.has('identity')) options.identity = { id: '4711', name: 'Anna Muster', email: 'anna.muster@beispiel.ch' };
+if (q.has('identity')) {
+  const custom = q.get('identity');
+  options.identity = custom && custom !== '1' ? JSON.parse(custom) : { id: '4711', name: 'Anna Muster', email: 'anna.muster@beispiel.ch' };
+}
 if (q.has('color')) options.colors = { primary: q.get('color') };
 if (q.has('mode')) options.screenshot = { mode: q.get('mode') };
 if (q.has('messages')) options.messages = JSON.parse(q.get('messages'));

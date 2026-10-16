@@ -8,7 +8,6 @@
 <p align="center">
   <a href="https://github.com/codebar-ag/feedback/actions/workflows/tests.yml"><img src="https://github.com/codebar-ag/feedback/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
   <a href="https://github.com/codebar-ag/feedback/actions/workflows/e2e.yml"><img src="https://github.com/codebar-ag/feedback/actions/workflows/e2e.yml/badge.svg" alt="E2E"></a>
-  <a href="https://www.npmjs.com/package/@codebar-ag/feedback-widget"><img src="https://img.shields.io/npm/v/@codebar-ag/feedback-widget?label=npm" alt="npm"></a>
   <img src="https://img.shields.io/badge/PHP-8.5-777BB4?logo=php&logoColor=white" alt="PHP 8.5">
   <img src="https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white" alt="Laravel 13">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
@@ -33,20 +32,19 @@
 - **Accessible** (WCAG 2.2 AA), isolated in a Shadow DOM, 18 KB gzip, no runtime dependencies
 - **Your data, your server**: a small Laravel API with origin and IP allowlists, rate limits and a honeypot. Screenshots are stored in your database
 
-<img src=".github/screenshots/annotate.png" width="300" align="right" alt="Marking mode">
-
 ## How it works
 
-The repository contains two parts:
+1. The widget runs on your website, in a Shadow DOM that leaves your styles untouched.
+2. A visitor writes feedback and can attach a screenshot of the whole page. In marking mode they draw rectangles or highlight text:
 
-- **API** (this folder): a Laravel 13 app that receives the feedback and stores it in PostgreSQL, MySQL or SQLite. Projects and feedback are managed with Artisan commands, there is no admin UI.
-- **Widget** ([`widget/`](widget)): the npm package [`@codebar-ag/feedback-widget`](https://www.npmjs.com/package/@codebar-ag/feedback-widget) that you add to your website.
+<p align="center">
+  <img src=".github/screenshots/annotate.png" width="720" alt="Marking mode with toolbar, rectangle and highlighter">
+</p>
 
-```
-your website ── @codebar-ag/feedback-widget ── POST /v1/projects/{key}/feedback ──▶ feedback API ──▶ database
-```
+3. The widget sends message, screenshot and diagnostics to your API: `POST /v1/projects/{key}/feedback`.
+4. The API checks origin, IP and rate limits and stores everything in your database. You work through the feedback with Artisan commands.
 
-<br clear="right">
+The repository contains both parts: the **API**, a Laravel 13 app in the root folder, and the **widget** in [`widget/`](widget), published as [`@codebar-ag/feedback-widget`](https://www.npmjs.com/package/@codebar-ag/feedback-widget).
 
 ## Quick start
 

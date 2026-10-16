@@ -41,6 +41,26 @@ async function open(context, sid, params = {}, responses = [{ status: 201, delay
   return page;
 }
 
+/** Neutral placeholder blocks, so the captured screenshot shows a page (not part of the widget shots). */
+const skeleton = (page, on) =>
+  page.evaluate((show) => {
+    document.getElementById('skeleton')?.remove();
+    if (!show) return;
+    const el = document.createElement('div');
+    el.id = 'skeleton';
+    el.innerHTML = `
+      <div style="height:64px;background:#fff"></div>
+      <div style="margin:56px 48px 0;width:46%;height:28px;border-radius:8px;background:#c9d4e3"></div>
+      <div style="margin:18px 48px 0;width:38%;height:12px;border-radius:6px;background:#dbe2ec"></div>
+      <div style="margin:10px 48px 0;width:32%;height:12px;border-radius:6px;background:#dbe2ec"></div>
+      <div style="display:flex;gap:16px;margin:40px 48px 0">
+        <div style="flex:1;height:150px;border-radius:14px;background:#fff"></div>
+        <div style="flex:1;height:150px;border-radius:14px;background:#fff"></div>
+        <div style="flex:1;height:150px;border-radius:14px;background:#fff"></div>
+      </div>`;
+    document.body.prepend(el);
+  }, on);
+
 /** Screenshot of the panel and launcher with some margin. */
 async function shotWidget(page, name) {
   await page.mouse.move(0, 0);
@@ -65,22 +85,25 @@ try {
   await w(page, 'textarea').blur();
   await shotWidget(page, 'form.png');
 
-  page = await open(desktop, 'shot-identity', { identity: '1' });
+  page = await open(desktop, 'shot-identity', { identity: JSON.stringify({ id: '4711', name: 'Anna Muster', email: 'anna@example.com' }) });
   await w(page, 'button.l').click();
   await w(page, 'textarea').fill('The CSV export is missing in the customer portal.');
+  await skeleton(page, true);
   await w(page, '.tr button').first().click();
   await w(page, '.tb').waitFor();
-  await page.mouse.move(330, 150);
+  await skeleton(page, false);
+  // Mark the second card of the placeholder page.
+  await page.mouse.move(343, 230);
   await page.mouse.down();
-  await page.mouse.move(670, 300, { steps: 8 });
+  await page.mouse.move(657, 402, { steps: 8 });
   await page.mouse.up();
   await w(page, '.tb [data-tool=marker]').click();
-  await page.mouse.move(350, 350);
+  await page.mouse.move(56, 134);
   await page.mouse.down();
-  await page.mouse.move(640, 354, { steps: 12 });
+  await page.mouse.move(500, 136, { steps: 12 });
   await page.mouse.up();
   await page.mouse.move(980, 800);
-  await page.screenshot({ path: resolve(out, 'annotate.png'), clip: { x: 290, y: 0, width: 420, height: 400 } });
+  await page.screenshot({ path: resolve(out, 'annotate.png'), clip: { x: 0, y: 0, width: 1000, height: 460 } });
   await w(page, '.tb [data-action=done]').click();
   await w(page, 'textarea').blur();
   await shotWidget(page, 'identity.png');
