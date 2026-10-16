@@ -12,7 +12,6 @@ enum ErrorCode: string
     case PayloadTooLarge = 'payload_too_large';
     case ValidationFailed = 'validation_failed';
     case RateLimited = 'rate_limited';
-    case NotFound = 'not_found';
     case MethodNotAllowed = 'method_not_allowed';
     case ServerError = 'server_error';
 }
