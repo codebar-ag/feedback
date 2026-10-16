@@ -1,7 +1,7 @@
 {
   "name": "@codebar-ag/feedback-widget",
   "version": "1.0.0",
-  "description": "codebar Feedback widget: launcher, form, full page screenshot with annotations and diagnostics.",
+  "description": "Self-hosted feedback widget: full-page screenshots with annotations, diagnostics and drafts. Vanilla TypeScript, Shadow DOM, no runtime dependencies in the core.",
   "license": "MIT",
   "type": "module",
   "repository": {
@@ -10,11 +10,20 @@
     "directory": "widget"
   },
   "homepage": "https://github.com/codebar-ag/feedback#widget",
+  "bugs": {
+    "url": "https://github.com/codebar-ag/feedback/issues"
+  },
+  "author": "codebar Solutions AG <info@codebar.ch>",
   "keywords": [
     "feedback",
-    "widget",
+    "feedback-widget",
+    "bug-report",
     "screenshot",
-    "annotation"
+    "annotation",
+    "user-feedback",
+    "laravel",
+    "typescript",
+    "shadow-dom"
   ],
   "sideEffects": false,
   "files": [
@@ -74,5 +83,8 @@
   },
   "dependencies": {
     "modern-screenshot": "4.7.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
