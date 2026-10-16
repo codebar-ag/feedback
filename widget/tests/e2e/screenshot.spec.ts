@@ -68,25 +68,30 @@ test('rectangle, marker, undo, clear all, Ctrl/Cmd+Z and minimum sizes', async (
   expect(await marks(page)).toHaveLength(0);
 });
 
-test('marks stick to the page while scrolling (document coordinates)', async ({ page }) => {
-  const x = w(page);
+test('the mouse wheel scrolls the page in marking mode', async ({ page }) => {
   await takeShot(page);
+  await page.mouse.move(400, 400);
   await page.mouse.wheel(0, 600);
-  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(300);
-  // WebKit finishes wheel scrolling asynchronously: wait until the position is stable.
-  let last = -1;
-  await expect
-    .poll(async () => {
-      const now = await page.evaluate(() => Math.round(scrollY));
-      const stable = now === last;
-      last = now;
-      return stable;
-    })
-    .toBe(true);
-  const scrolled = last;
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(100);
+  await expect(w(page).toolbar).toBeInViewport();
+});
+
+test('marks stick to the page while scrolling (document coordinates)', async ({ page }) => {
+  await takeShot(page);
+  // Instant scroll to a known position: wheel scrolling animates differently per browser.
+  await page.evaluate(() => window.scrollTo({ top: 600, behavior: 'instant' }));
+  await expect.poll(() => page.evaluate(() => Math.round(scrollY))).toBe(600);
   await drag(page, [100, 100], [200, 200]);
-  expect(await marks(page)).toEqual([{ type: 'rect', x: 100, y: 100 + scrolled, w: 100, h: 100 }]);
-  await expect(x.toolbar).toBeInViewport();
+  expect(await marks(page)).toEqual([{ type: 'rect', x: 100, y: 700, w: 100, h: 100 }]);
+
+  // Scrolling back keeps the mark at the same document position.
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  await drag(page, [100, 100], [200, 200]);
+  expect(await marks(page)).toEqual([
+    { type: 'rect', x: 100, y: 700, w: 100, h: 100 },
+    { type: 'rect', x: 100, y: 100, w: 100, h: 100 },
+  ]);
+  await expect(w(page).toolbar).toBeInViewport();
 });
 
 test('Escape cancels: fresh screenshot removed, existing one kept with old marks', async ({ page }) => {
