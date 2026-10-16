@@ -40,17 +40,20 @@ jobs:
       - run: npm ci
       - run: npm run check
 
-      # Trusted publishing: no token, the package is linked to this workflow in
-      # the npm package settings. Provenance is attached automatically.
-      # A version that is already on npm (e.g. the first manual publish) is skipped.
+      # Trusted publishing (OIDC, no token) once the package is linked to this
+      # workflow on npmjs.com. Only the very first publish needs the NPM_TOKEN
+      # secret, because a trusted publisher can only be added to an existing
+      # package. Remove the secret afterwards. Published versions are skipped.
       - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           name="$(node -p "require('./package.json').name")"
           version="$(node -p "require('./package.json').version")"
           if npm view "${name}@${version}" version >/dev/null 2>&1; then
             echo "${name}@${version} is already published, skipping."
           else
-            npm publish --access public
+            npm publish --access public --provenance
           fi
 
       - name: GitHub release with changelog and SRI hash

@@ -270,7 +270,7 @@ npm --prefix widget run e2e:full  # API and widget together
 npm --prefix widget run dev       # playground with a mock API on http://localhost:4173/fixtures/index.html
 ```
 
-Releases are published from a `v*` tag through GitHub Actions with npm trusted publishing. See the [changelog](CHANGELOG.md) for changes.
+Releases are published from a `v*` tag through GitHub Actions with npm trusted publishing (`release.yml`). The very first publish uses an `NPM_TOKEN` repository secret, since a trusted publisher can only be linked to an existing package. See the [changelog](CHANGELOG.md) for changes.
 
 ## License
 
