@@ -1,6 +1,8 @@
 <?php
 
 declare(strict_types=1);
+use Illuminate\Database\Connectors\ConnectionFactory;
+use Illuminate\Database\PostgresConnection;
 
 const LIMIT_KEYS = ['FEEDBACK_LIMIT_PER_IP_PER_MINUTE', 'FEEDBACK_LIMIT_PER_PROJECT_PER_MINUTE', 'FEEDBACK_MIN_ELAPSED_MS'];
 
@@ -69,4 +71,16 @@ it('switches a limit off with 0', function (): void {
 
 it('falls back to the default for invalid values', function (): void {
     expect(limitsWith(['FEEDBACK_LIMIT_PER_IP_PER_MINUTE' => 'many'])['per_ip_per_minute'])->toBe(10);
+});
+
+it('supports a read replica as configured by Laravel Cloud', function (): void {
+    config([
+        'database.connections.replica' => [...config('database.connections.pgsql'), 'read' => ['host' => 'replica.internal']],
+    ]);
+
+    $factory = app(ConnectionFactory::class);
+    $connection = $factory->make(config('database.connections.replica'), 'replica');
+
+    expect($connection)->toBeInstanceOf(PostgresConnection::class)
+        ->and(config('database.connections.pgsql.write.host'))->toBe(config('database.connections.pgsql.host'));
 });

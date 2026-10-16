@@ -48,6 +48,8 @@ return [
 
         'mysql' => [
             'driver' => 'mysql',
+            // Laravel Cloud sets read.host when DB_READ_HOST exists, the write host must exist too.
+            'write' => ['host' => env('DB_WRITE_HOST', env('DB_HOST', '127.0.0.1'))],
             'url' => env('DB_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),
@@ -68,6 +70,8 @@ return [
 
         'mariadb' => [
             'driver' => 'mariadb',
+            // Laravel Cloud sets read.host when DB_READ_HOST exists, the write host must exist too.
+            'write' => ['host' => env('DB_WRITE_HOST', env('DB_HOST', '127.0.0.1'))],
             'url' => env('DB_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),
@@ -88,6 +92,8 @@ return [
 
         'pgsql' => [
             'driver' => 'pgsql',
+            // Laravel Cloud sets read.host when DB_READ_HOST exists, the write host must exist too.
+            'write' => ['host' => env('DB_WRITE_HOST', env('DB_HOST', '127.0.0.1'))],
             'url' => env('DB_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '5432'),
