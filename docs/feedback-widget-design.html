@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feedback Widget · Design-Konzept</title>
+<style>
+:root{
+  --bg:#F5F7FA; --card:#FFFFFF; --ink:#101F3C; --muted:#5B6B85; --line:#E2E8F0; --accent:#C2540A;
+  --ok:#157F3B; --bad:#B42318; color-scheme: light;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 80px}
+h1{font-size:26px;line-height:1.2;margin:0 0 6px}
+h2{font-size:19px;margin:44px 0 12px}
+p.lead{margin:0;color:var(--muted);max-width:70ch}
+.bar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:22px 0 14px;padding:12px 14px;background:var(--card);border:1px solid var(--line);border-radius:14px}
+.bar label{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.bar select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button,.chip{font:inherit;font-size:13px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer}
+.seg button[aria-pressed="true"],.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.bar :focus-visible,.cards :focus-visible{outline:3px solid #1D4ED8;outline-offset:2px}
+.sep{width:1px;align-self:stretch;background:var(--line)}
+
+/* ===== Stage (simulierte Host-Seite) ===== */
+.stagewrap{overflow:hidden}
+.stage{position:relative;height:800px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#EEF1F5;container-type:inline-size;margin:0 auto;transition:max-width .25s}
+.stage.mobile{max-width:390px}
+.host{position:absolute;inset:0;color:#101F3C;font-family:ui-sans-serif,system-ui,sans-serif}
+.host nav{display:flex;align-items:center;gap:22px;height:56px;padding:0 28px;background:#fff;font-size:14px}
+.host nav b{font-size:20px;letter-spacing:.02em;margin-right:auto}
+.host nav span{color:#5B6B85}
+.host nav i{font-style:normal;background:#101F3C;color:#fff;border-radius:999px;padding:8px 16px;font-size:13px}
+.host .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:30px;padding:56px 40px 0}
+.host small{letter-spacing:.14em;font:12px ui-monospace,Menlo,monospace;color:#3C4C69}
+.host h3{font-size:40px;line-height:1.08;margin:12px 0 16px;letter-spacing:-.02em}
+.host p{margin:0 0 20px;color:#2B3B58;max-width:46ch}
+.host .btns{display:flex;gap:10px;flex-wrap:wrap}
+.host .btns span{border-radius:999px;padding:11px 20px;font-weight:600;font-size:14px;background:#101F3C;color:#fff}
+.host .btns span:first-child{background:#fff;color:#101F3C}
+.host .viz{position:relative;min-height:300px}
+.host .viz .ring{display:none}
+.host .viz .card{position:absolute;left:18%;top:34%;width:56%;height:38%;border-radius:12px;background:#fff;box-shadow:0 8px 30px rgba(16,31,60,.15)}
+.host .viz .card:before{content:"";position:absolute;left:0;right:0;top:0;height:24%;background:#101F3C;border-radius:12px 12px 0 0}
+.host .viz .card:after{content:"";position:absolute;left:12%;top:42%;width:70%;height:10px;border-radius:6px;background:#C9D6E8;box-shadow:0 22px 0 #C9D6E8,0 44px 0 #C9D6E8}
+.host .viz .dot{position:absolute;width:62px;height:62px;border-radius:50%;background:#fff;display:grid;place-items:center}
+.host .viz .dot svg{width:26px;height:26px}
+.host .strip{margin:40px 40px 0;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.host .strip div{background:rgba(255,255,255,.7);border-radius:12px;padding:16px;font-size:13px;color:#2B3B58}
+.host .strip b{display:block;font-size:15px;color:#101F3C;margin-bottom:4px}
+@container (max-width:560px){
+  .host nav span{display:none}
+  .host .hero{grid-template-columns:1fr;padding:28px 20px 0}
+  .host h3{font-size:30px}
+  .host .viz{display:none}
+  .host .strip{grid-template-columns:1fr;margin:24px 20px 0}
+}
+
+/* ===== Widget ===== */
+.fb{
+  --fb-primary:#ED813A; --fb-primary-strong:#ED813A; --fb-on-primary:#101F3C; --fb-on-strong:#101F3C; --fb-head-line:transparent; --fb-ring:0 0 0 0 transparent;
+  --fb-ink:#101F3C; --fb-muted:#5B6B85; --fb-surface:#FFFFFF; --fb-sunken:#F5F7FA; --fb-border:#E2E8F0;
+  --fb-scrim:rgba(16,31,60,.45); --fb-ann:#E02B20; --fb-focus:#1D4ED8; --fb-danger:#B42318; --fb-success:#157F3B;
+  font:15px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--fb-ink)
+}
+.fb *{box-sizing:border-box}
+.fb button{font:inherit;cursor:pointer}
+.fb :focus-visible{outline:3px solid var(--fb-focus);outline-offset:2px}
+.fb svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.fb [hidden]{display:none!important}
+
+.launcher{position:absolute;right:20px;bottom:20px;z-index:40;width:56px;height:56px;border-radius:50%;border:0;background:var(--fb-primary-strong);color:var(--fb-on-strong);display:grid;place-items:center;box-shadow:0 6px 20px rgba(16,31,60,.28),var(--fb-ring);transition:transform .15s,box-shadow .15s}
+.launcher:hover{transform:scale(1.06);box-shadow:0 8px 24px rgba(16,31,60,.34),var(--fb-ring)}
+.launcher svg{width:26px;height:26px}
+.launcher .ico-sparkle path:first-child{fill:currentColor}
+
+.panel{position:absolute;right:20px;bottom:92px;z-index:30;width:380px;max-height:calc(100% - 112px);display:flex;flex-direction:column;background:var(--fb-surface);border-radius:20px;box-shadow:0 18px 50px rgba(16,31,60,.32);overflow:hidden;animation:pop .18s ease-out}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+.ph{background:var(--fb-primary);color:var(--fb-on-primary);padding:10px 12px 10px 20px;flex:none;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--fb-head-line)}
+.ph .ico{width:24px;height:24px}
+.ph .acts{display:flex;gap:4px}
+.ph .acts button{width:34px;height:34px;border:0;border-radius:10px;background:transparent;color:inherit;display:grid;place-items:center}
+.ph .acts button:hover{background:rgba(16,31,60,.12)}
+.pb{padding:18px 20px 16px;overflow:auto;display:flex;flex-direction:column;gap:12px}
+.pb>*{flex:none}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:13px;font-weight:600}
+.fb input[type=text],.fb input[type=email],.fb textarea{font:inherit;color:var(--fb-ink);background:var(--fb-surface);border:1px solid var(--fb-border);border-radius:12px;padding:10px 12px;width:100%}
+.fb textarea{min-height:170px;resize:vertical}
+.fb ::placeholder{color:var(--fb-muted);opacity:1}
+.fb input:focus,.fb textarea:focus{outline:3px solid var(--fb-focus);outline-offset:1px;border-color:var(--fb-focus)}
+.err{color:var(--fb-danger);font-size:13px;line-height:16px;height:16px;margin:0}
+.fb .err[hidden]{display:block!important;visibility:hidden}
+.idbadge{display:flex;flex-direction:column;line-height:1.35;background:var(--fb-sunken);border:1px solid var(--fb-border);border-radius:12px;padding:8px 12px}
+.idbadge b{font-size:15px;font-weight:600}.idbadge span{font-size:13px;color:var(--fb-muted)}
+.req::after{content:" *"}
+.shot{display:flex;align-items:center;gap:12px;border:1px solid var(--fb-border);border-radius:14px;padding:10px;background:var(--fb-sunken)}
+.thumb{width:64px;height:44px;border-radius:8px;border:1px solid var(--fb-border);background:linear-gradient(#fff 0 22%,#EEF1F5 22%);position:relative;flex:none;overflow:hidden}
+.thumb i{position:absolute;border:2px solid var(--fb-ann);border-radius:2px}
+.thumb.busy:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);animation:sh 1s infinite}
+@keyframes sh{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.shot .txt{flex:1;min-width:0;font-size:13px;line-height:1.35}
+.shot .btn2{flex:none}
+.shot .txt b{display:block;font-size:13px}
+.shot .txt span{color:var(--fb-muted)}
+.shotrow{display:flex;align-items:center;gap:8px}
+.addshot{flex:1;min-width:0;display:flex;align-items:center;gap:10px;height:48px;padding:0 12px;border:1px solid var(--fb-border);background:var(--fb-surface);color:var(--fb-ink);border-radius:12px;font:600 14px inherit;text-align:left}
+.addshot svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.addshot:hover{border-color:var(--fb-muted)}
+.shotcard{flex:1;min-width:0;display:flex;align-items:center;gap:8px}
+.shotrow{justify-content:flex-start}.shotcard{flex:none}
+.shotcard[hidden],.addshot[hidden]{display:none}
+.shotcard .thumb{width:72px;height:44px;border-radius:8px}
+.ib{flex:none;width:30px;height:30px;border-radius:50%;border:1px solid var(--fb-border);background:var(--fb-surface);color:var(--fb-ink);display:grid;place-items:center;padding:0}
+.ib svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ib.big{width:44px;height:44px;border-radius:12px}.ib.big svg{width:20px;height:20px}
+.ib:hover{border-color:var(--fb-muted)}
+.btn2.wide{width:100%;padding:13px 18px;font-size:15px;font-weight:700}
+#sendtxt{display:inline-flex;align-items:center;gap:10px}
+.btn2{border:1px solid var(--fb-border);background:var(--fb-surface);color:var(--fb-ink);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:600;white-space:nowrap}
+.btn2:hover{border-color:var(--fb-muted)}
+.tech{font-size:12.5px;color:var(--fb-muted)}
+.tech button{background:none;border:0;padding:0;color:var(--fb-muted);display:flex;align-items:center;gap:6px;text-align:left}
+.tech button svg{width:16px;height:16px}
+.tech button u{text-underline-offset:2px}
+.details{margin-top:8px;border:1px solid var(--fb-border);border-radius:12px;background:var(--fb-sunken);padding:10px 12px;max-height:190px;overflow:auto}
+.details dl{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:0;font-size:12px}
+.details dt{color:var(--fb-muted)}
+.details dd{margin:0;color:var(--fb-ink);word-break:break-word}
+.details h4{margin:10px 0 4px;font-size:12px;color:var(--fb-ink)}
+.details ul{list-style:none;margin:0;padding:0;font:11.5px/1.4 ui-monospace,Menlo,Consolas,monospace}
+.details li{padding:3px 0;border-top:1px solid var(--fb-border);color:var(--fb-ink)}
+.details li em{font-style:normal;font-weight:700}
+.details li .e{color:var(--fb-danger)} .details li .w{color:var(--fb-muted)}
+.send{border:0;border-radius:999px;background:var(--fb-primary-strong);color:var(--fb-on-strong);font-weight:700;font-size:15px;padding:13px 18px;width:100%;display:flex;align-items:center;justify-content:center;gap:10px}
+.send:hover{filter:brightness(1.08)}
+.send[disabled]{opacity:.8;cursor:progress}
+.spin{flex:none;display:inline-block;box-sizing:border-box;width:18px;height:18px;min-width:18px;border-radius:50%;border:2.5px solid currentColor;border-right-color:transparent;animation:rot .7s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.foot{font-size:11.5px;color:var(--fb-muted);text-align:center;margin:-2px 0 0}
+.done,.errv{box-sizing:border-box;justify-content:center;padding:34px 24px 30px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.done .ok,.errv .bad{width:56px;height:56px;border-radius:50%;background:color-mix(in srgb,var(--fb-success) 16%,var(--fb-surface));color:var(--fb-success);display:grid;place-items:center}
+.done .ok svg,.errv .bad svg{width:28px;height:28px;stroke-width:2.6}
+.errv .bad{background:color-mix(in srgb,var(--fb-danger) 12%,var(--fb-surface));color:var(--fb-danger);display:grid;place-items:center}
+.done .btn2,.errv .btn2{padding:10px 24px;font-size:15px;font-weight:600}
+.btn2.pri{background:var(--fb-primary-strong);color:var(--fb-on-strong);border-color:transparent;font-weight:700}
+.done h3,.errv h3{margin:6px 0 0;font-size:18px;line-height:1.3;font-weight:700}
+.done p,.errv p{margin:0;color:var(--fb-muted);font-size:15px}
+
+/* Annotation */
+.ann{position:absolute;inset:0;z-index:20}
+.ann .scrim{position:absolute;inset:0;background:var(--fb-scrim)}
+.ann canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair;touch-action:none}
+.ann .tb{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:25;display:flex;align-items:center;gap:2px;background:var(--fb-surface);border-radius:999px;padding:6px;box-shadow:0 8px 28px rgba(16,31,60,.3);max-width:calc(100% - 16px)}
+.ann .tb button{width:40px;height:40px;border:0;border-radius:50%;background:transparent;color:var(--fb-ink);display:grid;place-items:center;flex:none}
+.ann .tb button:hover{background:var(--fb-sunken)}
+.ann .tb button[aria-pressed="true"]{background:var(--fb-sunken);box-shadow:inset 0 0 0 2px var(--fb-ink)}
+.ann .tb .div{width:1px;height:24px;background:var(--fb-border);margin:0 4px}
+.ann .tb .color{width:22px;height:22px;border-radius:50%;background:var(--fb-ann);box-shadow:0 0 0 3px var(--fb-surface),0 0 0 5px var(--fb-ann);margin:0 8px}
+.ann .tb .fin{width:auto;border-radius:999px;padding:0 16px;background:var(--fb-primary-strong);color:var(--fb-on-strong);font-weight:700;font-size:14px}
+.ann .tb .fin:hover{background:var(--fb-primary-strong);filter:brightness(1.06)}
+
+/* Im Markiermodus bleibt oben Platz fuer Toolbar und Hinweis */
+.stage:has(.ann:not([hidden])) .panel{max-height:calc(100% - 92px - 112px)}
+
+/* Mobile = Bottom-Sheet */
+@container (max-width:520px){
+  .panel{right:0;left:0;bottom:0;width:auto;max-height:86%;border-radius:20px 20px 0 0}
+  .launcher{right:14px;bottom:14px}
+  .stage:has(.panel:not([hidden])) .launcher{bottom:auto;top:12px;right:12px;width:44px;height:44px}
+  .ann .tb button{width:34px;height:34px}
+  .ann .tb .fin{width:auto;padding:0 12px}
+  .ann .tb .color,.ann .tb .div,.ann .tb #clear{display:none}
+  /* Beim Markieren auf Mobile: Panel und Launcher ausblenden, "Fertig" in der Toolbar bringt es zurueck */
+  .stage:has(.ann:not([hidden])) .panel,.stage:has(.ann:not([hidden])) .launcher{display:none}
+}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+/* ===== Doku unterhalb ===== */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.cards>div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.sw{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.sw .c{width:46px;height:46px;border-radius:10px;border:1px solid rgba(128,128,128,.35);display:grid;place-items:center;font-weight:700;font-size:15px;flex:none}
+.sw code{font-size:12px;color:var(--muted)}
+.sw b{font-size:13.5px;display:block}
+.sw .r{margin-left:auto;text-align:right;font-size:12px;color:var(--muted)}
+.badge{display:inline-block;font-size:11px;font-weight:700;border-radius:999px;padding:2px 8px;margin-top:3px}
+.badge.ok{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+.badge.mid{background:color-mix(in srgb,#B7791F 20%,transparent);color:#B7791F}
+.badge.no{background:color-mix(in srgb,var(--bad) 18%,transparent);color:var(--bad)}
+table{border-collapse:collapse;width:100%;font-size:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.note{color:var(--muted);font-size:13.5px;max-width:80ch}
+.tablewrap{overflow-x:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Feedback Widget · Design-Konzept</h1>
+  <p class="lead">Interaktives Mockup. Klicke auf das Icon unten rechts, wechsle Sprache und Identität oder markiere eine Stelle auf der Seite. Die simulierte Host-Seite ist bewusst leer. Das Konzept dazu steht in <code>feedback-widget-konzept.md</code>.</p>
+
+  <div class="bar" role="group" aria-label="Mockup-Steuerung">
+    <label>Sprache
+      <select id="lang">
+        <option value="de_CH">de_CH</option><option value="fr_CH">fr_CH</option><option value="en_CH">en_CH</option><option value="it_CH">it_CH</option>
+      </select>
+    </label>
+    <label>Projektfarbe
+      <select id="cpre"><option value="black">Schwarz</option><option value="white">Weiss</option><option value="custom" selected>Custom (Hex)</option></select>
+    </label>
+    <label id="chexl">Hex <input id="chex" type="text" value="#ED813A" maxlength="7" size="8" aria-label="Hex-Farbe" style="font:13px ui-monospace,Menlo,monospace;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 8px"></label>
+    <span id="cinfo" style="font-size:12.5px;color:var(--muted)"></span>
+    <button class="chip" id="idt" aria-pressed="false">Identität injiziert (eingeloggter Bereich)</button>
+    <button class="chip" id="mob" aria-pressed="false">Mobile Ansicht</button>
+    <span class="sep" aria-hidden="true"></span>
+    <div class="seg" id="states" role="group" aria-label="Zustand direkt anzeigen">
+      <button data-s="launcher">Launcher</button>
+      <button data-s="panel">Formular</button>
+      <button data-s="annotate">Markieren</button>
+      <button data-s="error">Fehler</button>
+      <button data-s="success">Erfolg</button>
+    </div>
+  </div>
+
+  <div class="stagewrap">
+  <div class="stage" id="stage">
+    <div class="host" aria-hidden="true"><div style="position:absolute;left:40px;top:70px;width:300px;height:26px;border-radius:7px;background:#DDE2EA"></div><div style="position:absolute;left:40px;top:120px;width:520px;height:14px;border-radius:7px;background:#DDE2EA"></div><div style="position:absolute;left:40px;top:144px;width:440px;height:14px;border-radius:7px;background:#DDE2EA"></div><div style="position:absolute;left:40px;top:220px;width:42%;height:110px;border-radius:12px;background:#DDE2EA"></div><div style="position:absolute;left:52%;top:220px;width:36%;height:110px;border-radius:12px;background:#DDE2EA"></div></div>
+
+    <div class="fb" id="fb">
+      <div class="ann" id="ann" hidden>
+        <div class="scrim"></div>
+        <canvas id="cv" aria-label="Markierungsfläche"></canvas>
+        <div class="tb" role="toolbar" aria-label="Markierungswerkzeuge" id="tb">
+          <button data-tool="rect" aria-pressed="true" data-i18n-aria="t_rect" data-i18n-title="t_rect"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1.5"/></svg></button>
+          <button data-tool="marker" aria-pressed="false" data-i18n-aria="t_marker" data-i18n-title="t_marker"><svg viewBox="0 0 24 24"><path d="M4 20h6M14.5 5.5l4 4L9 19l-5 1 1-5z"/></svg></button>
+          <span class="div" aria-hidden="true"></span>
+          <button id="undo" data-i18n-aria="t_undo" data-i18n-title="t_undo"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 010 12h-4"/></svg></button>
+          <button id="clear" data-i18n-aria="t_clear" data-i18n-title="t_clear"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/></svg></button>
+          <span class="div" aria-hidden="true"></span>
+          <button class="fin" id="fin" data-i18n="done"></button>
+        </div>
+      </div>
+
+      <section class="panel" id="panel" role="dialog" aria-label="Feedback" hidden>
+        <header class="ph">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3l1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z" fill="currentColor"/><path d="M19 3v4M17 5h4M5 18v3M3.5 19.5h3"/></svg>
+          <div class="acts">
+            <button type="button" id="cls" data-i18n-aria="close" data-i18n-title="close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          </div>
+        </header>
+
+        <form class="pb" id="form" novalidate>
+          <div class="field" id="idline" hidden><label data-i18n="send_as"></label><div class="idbadge"><b id="idname"></b><span id="idmail"></span></div></div>
+          <div id="idfields" style="display:contents">
+            <div class="field"><label for="em" class="req" data-i18n="email"></label><input type="email" id="em" autocomplete="email" required aria-required="true" aria-describedby="em-err"><p class="err" id="em-err" role="alert" hidden></p></div>
+          </div>
+          <div class="field"><label for="msg" class="req" data-i18n="message"></label><textarea id="msg" required aria-required="true" data-i18n-ph="message_ph" aria-describedby="msg-err"></textarea><p class="err" id="msg-err" role="alert" hidden></p></div>
+
+          <div class="field"><label data-i18n="tools"></label>
+          <div class="shotrow">
+            <button type="button" class="ib big" id="addshot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13.5" r="3.5"/></svg></button>
+            <div class="shotcard" id="shotcard" hidden>
+              <div class="thumb" id="thumb" aria-hidden="true"></div>
+              <button type="button" class="ib big" id="editshot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h6M14.5 5.5l4 4L9 19l-5 1 1-5z"/></svg></button>
+              <button type="button" class="ib big" id="rmshot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/></svg></button>
+            </div>
+          </div>
+          </div>
+
+          <button type="submit" class="send" id="send"><span id="sendtxt"></span></button>
+        </form>
+
+        <div class="errv" id="errv" role="alert" hidden>
+          <div class="bad"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5h.01"/></svg></div>
+          <h3 data-i18n="err_title"></h3>
+          <p data-i18n="err_text"></p>
+          <button type="button" class="btn2" id="errback" style="margin-top:10px" data-i18n="err_back"></button>
+        </div>
+
+        <div class="done" id="done" role="status" hidden>
+          <div class="ok"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></div>
+          <h3 data-i18n="success_title"></h3>
+          <p data-i18n="success_text"></p>
+          <button class="btn2" id="donebtn" style="margin-top:10px" data-i18n="close"></button>
+        </div>
+      </section>
+
+      <button class="launcher" id="launcher" aria-haspopup="dialog" aria-expanded="false" data-i18n-aria="launcher" data-i18n-title="launcher">
+        <svg class="ico-sparkle" id="licon" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3l1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z"/><path d="M19 3v4M17 5h4M5 18v3M3.5 19.5h3"/></svg>
+      </button>
+    </div>
+  </div>
+  </div>
+
+  <h2>Ablauf in vier Schritten</h2>
+  <div class="grid cards">
+    <div><b>1 · Launcher</b><p class="note">Runder Icon-Button unten rechts. Beim Öffnen wird er zum Schliessen-Kreuz.</p></div>
+    <div><b>2 · Formular</b><p class="note">Mit Identität: «Senden als» und ein Badge mit Name und E-Mail. Sonst nur das Pflichtfeld E-Mail. Dazu das Pflichtfeld Feedback und darunter die Tools (Kamera).</p></div>
+    <div><b>3 · Markieren</b><p class="note">Erst nach Klick auf das Kamera-Symbol. Seite abgedunkelt, Toolbar oben mit Rechteck und Marker. Gesendet wird immer die ganze Seite.</p></div>
+    <div><b>4 · Senden</b><p class="note">Ladezustand, dann Erfolg und automatisches Schliessen. Bei Fehler bleibt der Text erhalten und der Versuch ist wiederholbar.</p></div>
+  </div>
+
+  <h2>Farben (Hex) und Kontraste, live berechnet</h2>
+  <p class="note">Die Kontrastwerte unten werden beim Laden dieser Seite aus den Hex-Werten berechnet. Mindestwerte nach WCAG 2.2: 4.5:1 für Text, 3:1 für Symbole und Bedienelemente.</p>
+  <div class="grid" id="swl"></div>
+
+  <h2>Design-Entscheide</h2>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Thema</th><th>Entscheid</th><th>Begründung</th></tr></thead>
+    <tbody>
+      <tr><td>Projektfarbe</td><td>Pro Projekt: Schwarz, Weiss oder Custom-Hex, gesetzt per Command</td><td>Das Widget lädt die Farbe beim Start. Die Schrift auf der Farbe wählt es automatisch (Weiss oder Dunkelblau, je nach Kontrast).</td></tr>
+      <tr><td>Weisse Projektfarbe</td><td>Kopfzone mit Trennlinie, Launcher mit Rand, Senden-Button dunkelblau</td><td>Weiss auf Weiss wäre unsichtbar.</td></tr>
+      <tr><td>Kopfzeile</td><td>Schmale Farbleiste nur mit Minimieren und Schliessen. Kein Titel, kein Icon</td><td>Spart Platz, der Zweck ist klar.</td></tr>
+      <tr><td>Screenshot</td><td>Kamera-Icon unter dem Label «Tools», danach Vorschau, Stift und Papierkorb</td><td>Der Screenshot startet nie automatisch. Das Formular bleibt schlank.</td></tr>
+      <tr><td>Pflichtfelder</td><td>E-Mail (nur ohne Identität) und Feedback, mit * markiert</td><td>Mit Identität entfällt das E-Mail-Feld, stattdessen «Senden als» mit Badge.</td></tr>
+      <tr><td>Mobile</td><td>Bottom-Sheet, Launcher rückt beim Öffnen nach oben</td><td>Tastatur und Daumenbereich, 44 px Zielgrösse.</td></tr>
+      <tr><td>Werkzeuge</td><td>Nur Rechteck (rot) und Marker (gelb, halbtransparent), dazu Rückgängig, Alle löschen, Fertig</td><td>Kein Text, Pfeil, Stift oder Schwärzen im Bild. Den Kommentar schreibt die Person im Panel. Einzelne Markierungen löschen per Auswahl und Entf-Taste folgt in der Umsetzung, im Mockup genügen Rückgängig und Alle löschen.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var L = {
+ de_CH:{send_as:"Senden als",tools:"Tools",shot_add:"Screenshot hinzufügen",shot_title:"Ganze Seite",shot_n:["Keine Markierung", "1 Markierung", "{n} Markierungen"],edit:"Bearbeiten",remove:"Screenshot entfernen",err_title:"Senden fehlgeschlagen",err_text:"Dein Feedback wurde nicht gesendet.",err_retry:"Erneut senden",err_back:"Zurück zum Formular",launcher:'Feedback geben',name:'Name',email:'E-Mail',message:'Dein Feedback',message_ph:'Bitte beschreibe dein Anliegen …',
+  screenshot:'Screenshot markieren',mark:'Markieren',done:'Fertig',
+  submit:'Senden',sending:'Wird gesendet …',success_title:'Danke für dein Feedback!',success_text:'Wir haben deine Nachricht erhalten.',
+  error_network:'Senden fehlgeschlagen. Bitte versuche es erneut.',error_email:'Bitte gib eine gültige E-Mail ein.',error_message:'Bitte gib mindestens 3 Zeichen ein.',
+  close:'Schliessen',minimize:'Minimieren',
+  t_rect:'Rechteck',t_marker:'Marker',t_undo:'Rückgängig',t_clear:'Alle Markierungen löschen',
+  m_source:'Quelle',m_page:'Seite',m_system:'System',m_browser:'Browser',m_window:'Browserfenster',m_res:'Auflösung',m_dpi:'DPI',m_depth:'Farbtiefe',m_loc:'Standort',m_loc_v:'wird auf dem Server aus der IP ermittelt',m_lang:'Sprache',c_title:'Konsole und Fehler (letzte 4 von 50)',c_none:'Keine Fehler erfasst'},
+ fr_CH:{send_as:"Envoyer en tant que",tools:"Outils",shot_add:"Ajouter une capture",shot_title:"Page entière",shot_n:["Aucun repère", "1 repère", "{n} repères"],edit:"Modifier",remove:"Supprimer la capture",err_title:"Échec de l’envoi",err_text:"Ton retour n’a pas été envoyé.",err_retry:"Renvoyer",err_back:"Retour au formulaire",launcher:'Donner un avis',name:'Nom',email:'E-mail',message:'Ton avis',message_ph:'Décris ta demande …',
+  screenshot:'Marquer la capture',mark:'Marquer',done:'Terminé',
+  submit:'Envoyer',sending:'Envoi en cours …',success_title:'Merci pour ton retour !',success_text:'Nous avons bien reçu ton message.',
+  error_network:'Échec de l’envoi. Réessaie.',error_email:'Saisis une adresse e-mail valide.',error_message:'Saisis au moins 3 caractères.',
+  close:'Fermer',minimize:'Réduire',
+  t_rect:'Rectangle',t_marker:'Surligneur',t_undo:'Annuler',t_clear:'Effacer toutes les marques',
+  m_source:'Source',m_page:'Page',m_system:'Système',m_browser:'Navigateur',m_window:'Fenêtre',m_res:'Résolution',m_dpi:'DPI',m_depth:'Profondeur de couleur',m_loc:'Lieu',m_loc_v:'déterminé sur le serveur à partir de l’IP',m_lang:'Langue',c_title:'Console et erreurs (4 dernières sur 50)',c_none:'Aucune erreur enregistrée'},
+ en_CH:{send_as:"Sending as",tools:"Tools",shot_add:"Add screenshot",shot_title:"Full page",shot_n:["No marks", "1 mark", "{n} marks"],edit:"Edit",remove:"Remove screenshot",err_title:"Sending failed",err_text:"Your feedback was not sent.",err_retry:"Send again",err_back:"Back to the form",launcher:'Give feedback',name:'Name',email:'Email',message:'Your feedback',message_ph:'Please describe your feedback …',
+  screenshot:'Annotate screenshot',mark:'Annotate',done:'Done',
+  submit:'Send',sending:'Sending …',success_title:'Thanks for your feedback!',success_text:'We have received your message.',
+  error_network:'Sending failed. Please try again.',error_email:'Please enter a valid email.',error_message:'Please enter at least 3 characters.',
+  close:'Close',minimize:'Minimise',
+  t_rect:'Rectangle',t_marker:'Highlighter',t_undo:'Undo',t_clear:'Clear all marks',
+  m_source:'Source',m_page:'Page',m_system:'System',m_browser:'Browser',m_window:'Browser window',m_res:'Resolution',m_dpi:'DPI',m_depth:'Colour depth',m_loc:'Location',m_loc_v:'derived on the server from the IP',m_lang:'Language',c_title:'Console and errors (last 4 of 50)',c_none:'No errors captured'},
+ it_CH:{send_as:"Invia come",tools:"Strumenti",shot_add:"Aggiungi screenshot",shot_title:"Pagina intera",shot_n:["Nessun segno", "1 segno", "{n} segni"],edit:"Modifica",remove:"Rimuovi screenshot",err_title:"Invio non riuscito",err_text:"Il tuo feedback non è stato inviato.",err_retry:"Invia di nuovo",err_back:"Torna al modulo",launcher:'Invia feedback',name:'Nome',email:'E-mail',message:'Il tuo feedback',message_ph:'Descrivi qui la tua richiesta …',
+  screenshot:'Evidenzia lo screenshot',mark:'Evidenzia',done:'Fatto',
+  submit:'Invia',sending:'Invio in corso …',success_title:'Grazie per il tuo feedback!',success_text:'Abbiamo ricevuto il tuo messaggio.',
+  error_network:'Invio non riuscito. Riprova.',error_email:'Inserisci un indirizzo e-mail valido.',error_message:'Inserisci almeno 3 caratteri.',
+  close:'Chiudi',minimize:'Riduci',
+  t_rect:'Rettangolo',t_marker:'Evidenziatore',t_undo:'Annulla',t_clear:'Cancella tutti i segni',
+  m_source:'Origine',m_page:'Pagina',m_system:'Sistema',m_browser:'Browser',m_window:'Finestra',m_res:'Risoluzione',m_dpi:'DPI',m_depth:'Profondità colore',m_loc:'Posizione',m_loc_v:'ricavata sul server dall’IP',m_lang:'Lingua',c_title:'Console ed errori (ultimi 4 di 50)',c_none:'Nessun errore registrato'}
+};
+var PAGE_W=1541, PAGE_H=6120;
+var CONSOLE=[
+ {k:'e',t:'error',m:'Uncaught TypeError: Cannot read properties of undefined (reading \'map\') at app.js:412:18'},
+ {k:'e',t:'network',m:'GET /api/properties 500 (312 ms)'},
+ {k:'e',t:'resource',m:'Failed to load /img/hero@2x.webp (404)'},
+ {k:'w',t:'warn',m:'Authorization: Bearer [redacted] deprecated header usage'}
+];
+var $=function(s){return document.querySelector(s)};
+var fb=$('#fb'), stage=$('#stage');
+var S={lang:'de_CH',ident:false,state:'launcher',tool:'rect',shapes:[],meta:false,view:'form',busy:false,capturing:false,shot:'none'};
+
+function t(k,v){var s=(L[S.lang][k]!==undefined?L[S.lang][k]:L.en_CH[k])||k;if(v)for(var x in v)s=s.replace('{'+x+'}',v[x]);return s}
+
+function applyI18n(){
+  document.documentElement.lang=S.lang.replace('_','-');
+  fb.querySelectorAll('[data-i18n]').forEach(function(e){e.textContent=t(e.getAttribute('data-i18n'))});
+  fb.querySelectorAll('[data-i18n-ph]').forEach(function(e){e.placeholder=t(e.getAttribute('data-i18n-ph'))});
+  fb.querySelectorAll('[data-i18n-aria]').forEach(function(e){e.setAttribute('aria-label',t(e.getAttribute('data-i18n-aria')))});
+  fb.querySelectorAll('[data-i18n-title]').forEach(function(e){e.title=t(e.getAttribute('data-i18n-title'))});
+  $('#idname').textContent='Anna Muster';$('#idmail').textContent='anna.muster@beispiel.ch';
+  $('#idline').hidden=!S.ident; $('#idfields').style.display=S.ident?'none':'contents';
+  $('#addshot').setAttribute('aria-label',t('shot_add'));$('#addshot').title=t('shot_add');$('#editshot').setAttribute('aria-label',t('edit'));$('#editshot').title=t('edit');$('#rmshot').setAttribute('aria-label',t('remove'));$('#rmshot').title=t('remove');
+    showView(S.view);
+  $('#sendtxt').textContent=S.busy?t('sending'):t('submit');
+  renderShot();
+  $('#fin').textContent=t('done');
+}
+function renderShot(){
+  var n=S.shapes.length;
+  var show=S.shot!=='none';
+  $('#addshot').hidden=show; $('#shotcard').hidden=!show;
+  $('#thumb').className='thumb'+(S.capturing?' busy':'');
+  $('#thumb').innerHTML=S.shapes.slice(0,2).map(function(_,i){return '<i style="left:'+(8+i*14)+'px;top:'+(12+i*6)+'px;width:18px;height:9px"></i>'}).join('');
+}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+/* ---- Zustände ---- */
+function setState(s){
+  S.state=s;setTimeout(function(){typeof store==='function'&&store()},0);
+  var open=s!=='launcher';
+  $('#panel').hidden=!open;
+  $('#ann').hidden=s!=='annotate';
+  var lau=$('#launcher'); lau.setAttribute('aria-expanded',String(open));
+  $('#licon').innerHTML=open?'<path d="M6 6l12 12M18 6L6 18"/>':'<path d="M11 3l1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z"/><path d="M19 3v4M17 5h4M5 18v3M3.5 19.5h3"/>';
+  $('#licon').classList.toggle('ico-sparkle',!open);
+  if(open){S.view=S.view==='done'?'done':'form'}
+  if(s==='panel'&&S.view!=='done'&&S.view!=='err'){showView('form')}
+  if(s==='annotate'){showView('form');if(S.shot==='none')S.shot='ready';sizeCanvas();redraw()}
+  renderShot();
+  document.querySelectorAll('#states button').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.s===s||(s==='panel'&&b.dataset.s==='error'&&S.view==='err')))});
+}
+function showView(v){var fm=$('#form');if(S.view==='form'&&!fm.hidden&&fm.offsetHeight)S.fh=fm.offsetHeight;if(v!=='form'){var mh=(S.fh||440)+'px';$('#done').style.minHeight=mh;$('#errv').style.minHeight=mh}S.view=v;$('#form').hidden=v!=='form';$('#done').hidden=v!=='done';$('#errv').hidden=v!=='err'}
+function startShot(){S.shot='capturing';S.capturing=true;setState('annotate');setTimeout(function(){S.capturing=false;S.shot='ready';renderShot()},900)}
+
+$('#launcher').addEventListener('click',function(){
+  if(S.state==='launcher'){showView('form');setState('panel');$('#msg').focus()}else{setState('launcher')}
+});
+$('#cls').addEventListener('click',function(){setState('launcher');$('#launcher').focus()});
+$('#donebtn').addEventListener('click',function(){S.sent=false;setState('launcher');showView('form');$('#launcher').focus()});
+$('#addshot').addEventListener('click',startShot);
+$('#editshot').addEventListener('click',function(){setState('annotate')});
+$('#rmshot').addEventListener('click',function(){S.shot='none';S.shapes=[];renderShot();store();$('#addshot').focus()});
+$('#errback').addEventListener('click',function(){showView('form');$('#msg').focus()});
+$('#fin').addEventListener('click',function(){S.shot='ready';setState('panel');$('#msg').focus()});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){ if(S.view==='err')showView('form'); else if(S.state==='annotate'){if(S.shot==='capturing'||!S.shapes.length&&S.hadShot===false){}setState('panel')} else if(S.state==='panel')setState('launcher') }
+  if((e.metaKey||e.ctrlKey)&&e.key==='z'&&S.state==='annotate'){e.preventDefault();undo()}
+});
+
+/* ---- Senden ---- */
+function fieldErr(id,msg){var e=$(id);e.hidden=!msg;e.textContent=msg||''}
+$('#form').addEventListener('submit',function(ev){
+  ev.preventDefault(); if(S.busy)return;
+  var ok=true;
+  var m=$('#msg').value.trim();
+  fieldErr('#msg-err',m.length<3?t('error_message'):''); if(m.length<3)ok=false;
+  if(!S.ident){var em=$('#em').value.trim(); var bad=!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em); fieldErr('#em-err',bad?t('error_email'):''); if(bad)ok=false}
+  if(!ok){var f=this.querySelector('.err:not([hidden])');if(f){var inp=f.previousElementSibling;inp&&inp.focus()}return}
+  S.busy=true;$('#send').disabled=true;$('#sendtxt').innerHTML='<span class="spin"></span><span>'+esc(t('sending'))+'</span>';
+  setTimeout(function(){S.busy=false;$('#send').disabled=false;$('#sendtxt').textContent=t('submit');S.sent=true;store();$('#msg').value='';$('#em').value='';S.shot='none';S.shapes=[];renderShot();showView('done');$('#donebtn').focus();setState('panel')},1000);
+});
+
+/* ---- Annotation ---- */
+var cv=$('#cv'), ctx=cv.getContext('2d'), cur=null;
+function sizeCanvas(){var r=stage.getBoundingClientRect(),d=window.devicePixelRatio||1;cv.width=Math.round(r.width*d);cv.height=Math.round(r.height*d);ctx.setTransform(d,0,0,d,0,0)}
+function col(){return getComputedStyle(fb).getPropertyValue('--fb-ann').trim()||'#E02B20'}
+function drawShape(s){
+  ctx.lineCap='round';ctx.lineJoin='round';
+  if(s.type==='rect'){ctx.lineWidth=3;ctx.strokeStyle=col();ctx.strokeRect(s.x,s.y,s.w,s.h)}
+  else if(s.type==='marker'){ctx.lineWidth=20;ctx.strokeStyle='rgba(255,214,0,.5)';ctx.beginPath();s.pts.forEach(function(p,i){i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])});ctx.stroke()}
+}
+function redraw(){var r=stage.getBoundingClientRect();ctx.clearRect(0,0,r.width,r.height);S.shapes.forEach(drawShape);if(cur)drawShape(cur)}
+function pos(e){var r=cv.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top]}
+function norm(s){if(s.type==='rect'){if(s.w<0){s.x+=s.w;s.w=-s.w}if(s.h<0){s.y+=s.h;s.h=-s.h}}return s}
+cv.addEventListener('pointerdown',function(e){
+  var p=pos(e);cv.setPointerCapture(e.pointerId);
+  cur=S.tool==='rect'?{type:'rect',x:p[0],y:p[1],w:0,h:0}:{type:'marker',pts:[p]};
+});
+cv.addEventListener('pointermove',function(e){
+  if(!cur)return;var p=pos(e);
+  if(cur.type==='rect'){cur.w=p[0]-cur.x;cur.h=p[1]-cur.y}else cur.pts.push(p);
+  redraw();
+});
+cv.addEventListener('pointerup',function(){
+  if(!cur)return;var s=norm(cur);cur=null;
+  var tiny=s.type==='rect'?(s.w<6||s.h<6):s.pts.length<3;
+  if(!tiny)S.shapes.push(s);redraw();renderShot();store();
+});
+function undo(){S.shapes.pop();redraw();renderShot()}
+$('#undo').addEventListener('click',undo);
+$('#clear').addEventListener('click',function(){S.shapes=[];redraw();renderShot()});
+$('#tb').addEventListener('click',function(e){var b=e.target.closest('[data-tool]');if(!b)return;S.tool=b.dataset.tool;this.querySelectorAll('[data-tool]').forEach(function(x){x.setAttribute('aria-pressed',String(x===b))})});
+window.addEventListener('resize',function(){if(S.state==='annotate'){sizeCanvas();redraw()}});
+
+/* ---- Projektfarbe ---- */
+function hexRgb(h){h=h.replace('#','');return [0,2,4].map(function(i){return parseInt(h.substr(i,2),16)})}
+function rgbHex(a){return '#'+a.map(function(v){return ('0'+Math.max(0,Math.min(255,Math.round(v))).toString(16)).slice(-2)}).join('').toUpperCase()}
+function mixc(a,b,t){var x=hexRgb(a),y=hexRgb(b);return rgbHex(x.map(function(v,i){return v+(y[i]-v)*t/100}))}
+function lum(h){var c=hexRgb(h).map(function(v){v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4)});return .2126*c[0]+.7152*c[1]+.0722*c[2]}
+function cr(a,b){var x=lum(a),y=lum(b);if(x<y){var t=x;x=y;y=t}return (x+.05)/(y+.05)}
+var INK='#101F3C';
+function onOf(h){return cr('#FFFFFF',h)>=cr(INK,h)?'#FFFFFF':INK}
+function derive(h){
+  var p=h,t=0;
+  var on=onOf(p),strong=p,btnOn=on,line='transparent',ring='0 0 0 0 transparent';
+  t=0;while(cr(btnOn,strong)<4.5&&t<100){t+=2;strong=mixc(p,btnOn==='#FFFFFF'?'#000000':'#FFFFFF',t);btnOn=onOf(strong)}
+  if(lum(p)>0.85){line='var(--fb-border)';ring='0 0 0 1px var(--fb-border)';strong=INK;btnOn='#FFFFFF'}
+  return {p:p,on:on,strong:strong,btnOn:btnOn,line:line,ring:ring};
+}
+function applyColor(){
+  var pre=$('#cpre').value,hex=pre==='black'?'#000000':pre==='white'?'#FFFFFF':$('#chex').value.trim();
+  $('#chexl').style.display=pre==='custom'?'':'none';
+  if(!/^#[0-9a-fA-F]{6}$/.test(hex)){$('#cinfo').textContent='Ungültiger Hex-Wert';return}
+  var d=derive(hex.toUpperCase());
+  [['--fb-primary',d.p],['--fb-on-primary',d.on],['--fb-primary-strong',d.strong],['--fb-on-strong',d.btnOn],['--fb-head-line',d.line],['--fb-ring',d.ring]].forEach(function(kv){fb.style.setProperty(kv[0],kv[1])});
+  $('#cinfo').textContent='Schrift '+d.on+' · '+cr(d.on,d.p).toFixed(2)+':1';
+}
+
+/* ---- Steuerung ---- */
+$('#lang').addEventListener('change',function(){S.lang=this.value;applyI18n();});
+$('#cpre').addEventListener('change',applyColor);
+$('#chex').addEventListener('input',applyColor);
+$('#idt').addEventListener('click',function(){S.ident=!S.ident;this.setAttribute('aria-pressed',String(S.ident));applyI18n()});
+$('#mob').addEventListener('click',function(){var on=this.getAttribute('aria-pressed')!=='true';this.setAttribute('aria-pressed',String(on));stage.classList.toggle('mobile',on);if(S.state==='annotate'){setTimeout(function(){sizeCanvas();redraw()},300)}});
+$('#states').addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b)return;var s=b.dataset.s;
+  if(s==='launcher'){setState('launcher')}
+  else if(s==='panel'){showView('form');setState('panel')}
+  else if(s==='annotate'){showView('form');setState('annotate');if(!S.shapes.length){S.shapes.push({type:'rect',x:60,y:112,w:300,h:150})}sizeCanvas();redraw();renderShot()}
+  else if(s==='error'){$('#msg').value=$('#msg').value||'Die Schaltfläche «Speichern» reagiert nicht.';showView('err');setState('panel');showView('err')}
+  else if(s==='success'){showView('done');setState('panel')}
+});
+
+/* ---- Farbtabellen ---- */
+function lum(h){h=h.replace('#','');var c=[0,2,4].map(function(i){var v=parseInt(h.substr(i,2),16)/255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4)});return .2126*c[0]+.7152*c[1]+.0722*c[2]}
+function cr(a,b){var x=lum(a),y=lum(b);if(x<y){var t=x;x=y;y=t}return (x+.05)/(y+.05)}
+var LIGHT=[
+ ['--fb-ink','#101F3C','#FFFFFF','Haupttext auf Panel','text'],
+ ['--fb-ink-muted','#5B6B85','#FFFFFF','Hilfstexte, Platzhalter','text'],
+ ['Projektfarbe Orange #ED813A','#101F3C','#ED813A','Beispiel Custom-Hex, Schrift automatisch dunkelblau','text'],
+ ['Projektfarbe Schwarz','#FFFFFF','#000000','Preset black, Schrift automatisch weiss','text'],
+ ['Projektfarbe Weiss','#101F3C','#FFFFFF','Preset white, Schrift automatisch dunkelblau','text'],
+ ['Projektfarbe Grün #0A7C66','#FFFFFF','#0A7C66','Beispiel Custom-Hex, Schrift automatisch weiss','text'],
+ ['Weiss auf Orange','#FFFFFF','#ED813A','wird nicht gewählt, Dunkelblau ist besser','text'],
+ ['--fb-annotation','#E02B20','#FFFFFF','Markierungen (rot)','ui'],
+ ['--fb-focus','#1D4ED8','#FFFFFF','Fokusring','ui'],
+ ['--fb-danger','#B42318','#FFFFFF','Fehlermeldung','text'],
+ ['--fb-success','#157F3B','#FFFFFF','Erfolg','text']
+];
+function sw(rows,target){
+  $(target).innerHTML=rows.map(function(r){
+    var v=cr(r[1],r[2]),need=r[4]==='ui'?3:4.5,cls=v>=need?'ok':(v>=3?'mid':'no');
+    var label=v>=need?(r[4]==='ui'?'UI ≥ 3:1':'AA'):(v>=3?'nur grosse Schrift/UI':'unter Mindestwert');
+    return '<div class="sw"><div class="c" style="background:'+r[2]+';color:'+r[1]+'">Aa</div><div><b>'+esc(r[0])+'</b><code>'+r[1]+' auf '+r[2]+'</code><br><span class="note" style="font-size:12px">'+esc(r[3])+'</span></div><div class="r"><b style="color:var(--ink)">'+v.toFixed(2)+':1</b><br><span class="badge '+cls+'">'+label+'</span></div></div>';
+  }).join('');
+}
+sw(LIGHT,'#swl');
+
+
+/* ---- Entwurf bleibt erhalten (sessionStorage, nur in diesem Tab) ---- */
+var KEY='fb-draft-demo',TTL=24*3600*1000;
+function store(){try{if(S.sent){sessionStorage.removeItem(KEY);return}
+  sessionStorage.setItem(KEY,JSON.stringify({t:Date.now(),open:S.state!=='launcher',email:$('#em').value,msg:$('#msg').value,shot:S.shot==='ready'?'ready':'none',shapes:S.shapes}))}catch(e){}}
+function restore(){try{var d=JSON.parse(sessionStorage.getItem(KEY)||'null');if(!d||Date.now()-d.t>TTL){sessionStorage.removeItem(KEY);return false}
+  $('#em').value=d.email||'';$('#msg').value=d.msg||'';S.shot=d.shot;S.shapes=d.shapes||[];renderShot();return d.open}catch(e){return false}}
+['#em','#msg'].forEach(function(id){$(id).addEventListener('input',store)});
+applyI18n(); applyColor(); var wasOpen=restore(); setState(wasOpen?'panel':'launcher');
+document.querySelector('#states [data-s="launcher"]').setAttribute('aria-pressed','true');
+})();
+</script>
+</body>
+</html>

@@ -1,42 +1,54 @@
 <?php
 
-use App\Http\Middleware\SetLanguage;
-use CodebarAg\LaravelFeaturePolicy\AddFeaturePolicyHeaders;
-use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
-use Illuminate\Console\Scheduling\Schedule;
+declare(strict_types=1);
+
+use App\Enums\ErrorCode;
+use App\Http\Responses\ApiError;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Spatie\Csp\AddCspHeaders;
-use Spatie\Health\Commands\RunHealthChecksCommand;
-use Spatie\Permission\Middleware\RoleMiddleware;
+use Illuminate\Http\Exceptions\PostTooLargeException;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Http\Middleware\HandleCors;
+use Illuminate\Http\Middleware\ValidatePostSize;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php'
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
+        apiPrefix: '',
     )
-    ->withSchedule(function (Schedule $schedule) {
-        $schedule->command(RunHealthChecksCommand::class)->everyFiveMinutes();
-        $schedule->command('auth:clear-resets')->daily();
-    })
-    ->withMiddleware(function (Middleware $middleware) {
-        // Herd/Valet/nginx terminate TLS; trust X-Forwarded-* so the app sees HTTPS and cookies/URLs stay consistent.
-        // TRUSTED_PROXIES: `*` (default) trusts headers from the immediate client only (see Illuminate TrustProxies).
-        // In production behind a known load balancer, set comma-separated proxy IPs/CIDRs (see .env.example).
-        $middleware->trustProxies(at: env('TRUSTED_PROXIES') ?: '*');
+    ->withMiddleware(function (Middleware $middleware): void {
+        // CORS is applied per project by ApplyProjectCors, the post size check
+        // runs inside the route group so that 413 responses carry CORS headers.
+        $middleware->remove([HandleCors::class, ValidatePostSize::class]);
 
-        $middleware->web(append: [
-            AddCspHeaders::class,
-            AddFeaturePolicyHeaders::class,
-            SetLanguage::class,
-        ]);
-        $middleware->alias([
-            'role' => RoleMiddleware::class,
-            // 'permission' => PermissionMiddleware::class,
-            // 'role_or_permission' => RoleOrPermissionMiddleware::class,
-        ]);
-        $middleware->appendToGroup(group: 'laravel-auth-middleware', middleware: [
-            EnsureEmailIsVerified::redirectTo('auth.verification.notice'),
-        ]);
+        // Behind a load balancer or CDN, list its addresses so that
+        // $request->ip() is the client IP (IP policy, rate limits, geo).
+        $proxies = env('TRUSTED_PROXIES');
+
+        if (is_string($proxies) && $proxies !== '') {
+            $middleware->trustProxies(at: $proxies === '*' ? '*' : array_map(trim(...), explode(',', $proxies)));
+        }
     })
-    ->withExceptions(function (Exceptions $exceptions) {})->create();
+    ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->shouldRenderJsonWhen(fn (): bool => true);
+
+        $exceptions->render(function (Throwable $e, Request $request) {
+            return match (true) {
+                $e instanceof ValidationException => ApiError::response(ErrorCode::ValidationFailed, 422, ['fields' => $e->errors()]),
+                $e instanceof ThrottleRequestsException => ApiError::response(ErrorCode::RateLimited, 429, [], array_map(strval(...), $e->getHeaders())),
+                $e instanceof PostTooLargeException => ApiError::response(ErrorCode::PayloadTooLarge, 413),
+                $e instanceof ModelNotFoundException, $e instanceof NotFoundHttpException => ApiError::response(ErrorCode::NotFound, 404),
+                $e instanceof MethodNotAllowedHttpException => ApiError::response(ErrorCode::MethodNotAllowed, 405, [], array_map(strval(...), $e->getHeaders())),
+                $e instanceof HttpExceptionInterface => ApiError::response(ErrorCode::ServerError, $e->getStatusCode()),
+                default => ApiError::response(ErrorCode::ServerError, 500),
+            };
+        });
+    })->create();
