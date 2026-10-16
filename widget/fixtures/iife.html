@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="de-CH">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Script-Tag</title>
+    <link rel="stylesheet" href="/fixtures/page.css" />
+    <script async src="/dist/feedback.iife.js" id="cbf"></script>
+  </head>
+  <body>
+    <main>
+      <h1>Script-Tag-Variante</h1>
+      <section><p>IIFE-Build mit CodebarFeedback.init.</p></section>
+    </main>
+    <script type="module">
+      import { boot } from '/fixtures/host.js';
+      const script = document.getElementById('cbf');
+      const ready = () => boot((o) => window.CodebarFeedback.init(o));
+      if (window.CodebarFeedback) ready();
+      else script.addEventListener('load', ready);
+    </script>
+  </body>
+</html>

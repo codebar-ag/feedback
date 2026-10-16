@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="de-CH">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Beispiel Startseite</title>
+    <link rel="stylesheet" href="/fixtures/page.css" />
+  </head>
+  <body>
+    <header>
+      <b>Beispiel</b><a href="/fixtures/second.html" id="nav-second">Zweite Seite</a
+      ><a href="/fixtures/spa.html" data-spa id="nav-spa">SPA</a><a href="/fixtures/index.html" id="nav-home">Start</a>
+    </header>
+    <main>
+      <h1>Beispiel Startseite</h1>
+      <section id="intro">
+        <p>Neutrale Beispielseite für die Widget-Tests.</p>
+        <label>Passwort <input type="password" id="pw" value="geheim123" /></label>
+        <div class="secret" data-feedback-mask id="masked">Kundendaten</div>
+        <div class="ad" data-feedback-ignore id="ignored">Werbung</div>
+        <button class="l" id="host-button">Host-Button</button>
+      </section>
+      <section class="tall" id="tall"><p>Langer Inhalt zum Scrollen.</p></section>
+      <section id="end"><p>Ende der Seite.</p></section>
+    </main>
+    <script type="module">
+      import { boot } from '/fixtures/host.js';
+      import { initFeedback } from '/dist/feedback.js';
+      boot(initFeedback);
+    </script>
+  </body>
+</html>

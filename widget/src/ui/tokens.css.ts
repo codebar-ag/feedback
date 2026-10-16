@@ -27,9 +27,9 @@ export const CSS = `
 .r{${vars};--fb-primary:#000000;--fb-on-primary:#FFFFFF;--fb-strong:#000000;--fb-on-strong:#FFFFFF;--fb-head-line:transparent;--fb-ring:0 0 0 0 transparent;font:15px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--fb-ink);-webkit-text-size-adjust:100%;text-align:left}
 .r *,.r *::before,.r *::after{box-sizing:border-box}
 .r [hidden]{display:none!important}
-.r button{font:inherit;color:inherit;cursor:pointer;margin:0;-webkit-tap-highlight-color:transparent}
+.r :where(button){font:inherit;color:inherit;cursor:pointer;margin:0;-webkit-tap-highlight-color:transparent}
 .r :focus-visible{outline:3px solid var(--fb-focus);outline-offset:2px}
-.r svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none;display:block}
+.r :where(svg){width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none;display:block}
 .sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 .l{position:fixed;right:20px;bottom:20px;z-index:var(--fb-z);width:56px;height:56px;border-radius:50%;border:0;padding:0;background:var(--fb-strong);color:var(--fb-on-strong);display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 20px rgba(16,31,60,.28),var(--fb-ring);transition:transform .15s}
 .l:hover{transform:scale(1.06)}
@@ -49,9 +49,9 @@ export const CSS = `
 .f{display:flex;flex-direction:column;gap:4px;min-width:0}
 .lb{font-size:13px;font-weight:600;line-height:1.45}
 .rq::after{content:" *"}
-.r input,.r textarea{font:inherit;font-size:15px;color:var(--fb-ink);background:var(--fb-surface);border:1px solid var(--fb-border);border-radius:12px;padding:10px 12px;width:100%;margin:0;box-shadow:none;appearance:none}
-.r input{height:44px}
-.r textarea{min-height:170px;resize:vertical;display:block}
+.r :where(input,textarea){font:inherit;font-size:15px;color:var(--fb-ink);background:var(--fb-surface);border:1px solid var(--fb-border);border-radius:12px;padding:10px 12px;width:100%;margin:0;box-shadow:none;appearance:none}
+.r :where(input){height:44px}
+.r :where(textarea){min-height:170px;resize:vertical;display:block}
 .r ::placeholder{color:var(--fb-ink-muted);opacity:1}
 .r input:focus,.r textarea:focus{outline:3px solid var(--fb-focus);outline-offset:2px}
 .r [aria-invalid="true"]{border-color:var(--fb-danger)}

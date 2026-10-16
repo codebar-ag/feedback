@@ -292,7 +292,9 @@ export class Widget implements FeedbackInstance {
 
     if (next === 'closed') {
       this.events.emit('close');
-      if (this.hostUi.shadow.activeElement || prev !== 'form') this.launcher.el.focus({ preventScroll: true });
+      // Focus returns to the launcher unless the user is already working in the host page.
+      const active = document.activeElement;
+      if (!active || active === document.body || active === this.hostUi.host) this.launcher.el.focus({ preventScroll: true });
       return;
     }
     if (this.quiet) return;
