@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { LOCALES, bcp47, resolveLocale, translator } from '../../src/i18n/index';
 
-// Core texts from concept 4.5 (keys as in the code).
-const CONCEPT: Record<string, [string, string, string, string]> = {
+// Reference texts per locale (keys as in the code).
+const TEXTS: Record<string, [string, string, string, string]> = {
   launcher: ['Feedback geben', 'Donner un avis', 'Give feedback', 'Invia feedback'],
   email: ['E-Mail', 'E-mail', 'Email', 'E-mail'],
   message: ['Dein Feedback', 'Ton avis', 'Your feedback', 'Il tuo feedback'],
@@ -65,8 +65,8 @@ describe('i18n', () => {
     }
   });
 
-  it('matches the concept texts', () => {
-    for (const [key, values] of Object.entries(CONCEPT)) {
+  it('matches the reference texts', () => {
+    for (const [key, values] of Object.entries(TEXTS)) {
       ORDER.forEach((locale, i) => expect(LOCALES[locale][key as keyof (typeof LOCALES)['de_CH']], `${locale}.${key}`).toBe(values[i]));
     }
   });

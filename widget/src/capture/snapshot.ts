@@ -1,6 +1,5 @@
 /**
- * Lazy chunk: renders the full page with modern-screenshot (concept 4.8,
- * 4.11.6 step 2). Never part of the core bundle.
+ * Lazy chunk: renders the full page with modern-screenshot. Never part of the core bundle.
  */
 import { domToCanvas } from 'modern-screenshot';
 import { MASK_COLOR, maskRects, paintMasks, pickScale } from './mask.js';

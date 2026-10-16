@@ -6,7 +6,8 @@ return [
 
     'default' => env('FILESYSTEM_DISK', 'local'),
 
-    // Only the local disk is used (geoip:update). Screenshots live in the database.
+    // No disk is used, screenshots live in the database. Defined only to keep
+    // Laravel's local "serve" routes switched off.
     'disks' => [
         'local' => [
             'driver' => 'local',

@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="de-CH">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Beispiel AG</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font:
+          16px/1.55 ui-sans-serif,
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+        color: #101f3c;
+        background: #eef1f5;
+      }
+      nav {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        height: 64px;
+        padding: 0 40px;
+        background: #fff;
+        font-size: 14px;
+      }
+      nav b {
+        font-size: 20px;
+        margin-right: auto;
+        letter-spacing: 0.02em;
+      }
+      nav span {
+        color: #5b6b85;
+      }
+      nav i {
+        font-style: normal;
+        background: #101f3c;
+        color: #fff;
+        border-radius: 999px;
+        padding: 8px 18px;
+      }
+      .hero {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 40px;
+        padding: 72px 40px 40px;
+        max-width: 1200px;
+      }
+      small {
+        font:
+          12px ui-monospace,
+          Menlo,
+          monospace;
+        letter-spacing: 0.14em;
+        color: #3c4c69;
+      }
+      h1 {
+        font-size: 44px;
+        line-height: 1.08;
+        margin: 12px 0 16px;
+        letter-spacing: -0.02em;
+      }
+      p {
+        margin: 0 0 22px;
+        color: #2b3b58;
+        max-width: 46ch;
+      }
+      .btns {
+        display: flex;
+        gap: 10px;
+      }
+      .btns span {
+        border-radius: 999px;
+        padding: 12px 22px;
+        font-weight: 600;
+        font-size: 14px;
+        background: #101f3c;
+        color: #fff;
+      }
+      .btns span + span {
+        background: #fff;
+        color: #101f3c;
+      }
+      .card {
+        align-self: center;
+        height: 240px;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 12px 40px rgba(16, 31, 60, 0.12);
+        position: relative;
+        overflow: hidden;
+      }
+      .card::before {
+        content: '';
+        position: absolute;
+        inset: 0 0 auto;
+        height: 56px;
+        background: #101f3c;
+      }
+      .card::after {
+        content: '';
+        position: absolute;
+        left: 32px;
+        top: 96px;
+        width: 70%;
+        height: 12px;
+        border-radius: 6px;
+        background: #c9d6e8;
+        box-shadow:
+          0 28px 0 #c9d6e8,
+          0 56px 0 #c9d6e8;
+      }
+      .strip {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        padding: 0 40px 80px;
+        max-width: 1200px;
+      }
+      .strip div {
+        background: rgba(255, 255, 255, 0.75);
+        border-radius: 12px;
+        padding: 18px;
+        font-size: 14px;
+        color: #2b3b58;
+        min-height: 120px;
+      }
+      .strip b {
+        display: block;
+        font-size: 16px;
+        color: #101f3c;
+        margin-bottom: 4px;
+      }
+      .more {
+        height: 900px;
+        margin: 0 40px;
+        border-radius: 16px;
+        background: linear-gradient(#fff, #dde3ec);
+      }
+      @media (max-width: 700px) {
+        nav {
+          padding: 0 20px;
+        }
+        nav span {
+          display: none;
+        }
+        .hero {
+          grid-template-columns: 1fr;
+          padding: 36px 20px 24px;
+        }
+        h1 {
+          font-size: 32px;
+        }
+        .card {
+          display: none;
+        }
+        .strip {
+          grid-template-columns: 1fr;
+          padding: 0 20px 40px;
+        }
+        .more {
+          margin: 0 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav><b>Beispiel</b><span>Produkte</span><span>Preise</span><span>Kontakt</span><i>Anmelden</i></nav>
+    <section class="hero">
+      <div>
+        <small>KUNDENPORTAL</small>
+        <h1>Alles für dein Projekt an einem Ort.</h1>
+        <p>Diese Seite ist eine neutrale Beispielseite, auf der das Feedback-Widget eingebunden ist.</p>
+        <div class="btns"><span>Jetzt starten</span><span>Mehr erfahren</span></div>
+      </div>
+      <div class="card"></div>
+    </section>
+    <section class="strip">
+      <div><b>Übersicht</b>Alle Aufträge und ihr Status auf einen Blick.</div>
+      <div><b>Dokumente</b>Rechnungen und Verträge als PDF.</div>
+      <div><b>Support</b>Direkter Kontakt zu deinem Team.</div>
+    </section>
+    <div class="more"></div>
+    <script type="module">
+      import { boot } from '/fixtures/host.js';
+      import { initFeedback } from '/dist/feedback.js';
+      boot(initFeedback);
+    </script>
+  </body>
+</html>

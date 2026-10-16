@@ -27,7 +27,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         api: __DIR__.'/../routes/api.php',
-        commands: __DIR__.'/../routes/console.php',
         apiPrefix: '',
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -35,7 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // runs inside the route group so that 413 responses carry CORS headers.
         $middleware->remove([HandleCors::class, ValidatePostSize::class]);
 
-        // The feedback chain must run before throttle:feedback (concept 12.3).
+        // The feedback chain must run before throttle:feedback.
         $middleware->priority([
             ResolveProject::class,
             ApplyProjectCors::class,

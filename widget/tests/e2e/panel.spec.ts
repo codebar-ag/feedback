@@ -46,7 +46,7 @@ test('header: icon left, X right, no title, no minimize', async ({ page }) => {
   await expect(x.panel.locator('h1, h2:visible, [class*=title]')).toHaveCount(0);
 });
 
-// Board 2: position, size, no overlap with the launcher.
+// position, size, no overlap with the launcher.
 test('panel geometry: 380 wide, right 20, above the launcher', async ({ page }) => {
   const x = w(page);
   await x.launcher.click();

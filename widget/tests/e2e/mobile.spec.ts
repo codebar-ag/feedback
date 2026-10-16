@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { box, expectState, fill, marks, settle, sid, visit, w } from './helpers';
 
-// Board 11: bottom sheet, touch, status pages on mobile.
+// bottom sheet, touch, status pages on mobile.
 test('bottom sheet with 12 px margins, launcher hidden while open', async ({ page }, info) => {
   await visit(page, sid(info));
   const x = w(page);

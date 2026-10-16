@@ -66,7 +66,7 @@ final class StoreFeedbackRequest extends FormRequest
         return [
             'idempotency_key' => ['required', 'uuid'],
             'message' => ['required', 'string', 'min:3', 'max:5000'],
-            // A name is only accepted from an injected identity (concept 4.11.5).
+            // A name is only accepted from an injected identity.
             'name' => $hasIdentity ? ['nullable', 'string', 'max:120'] : ['prohibited'],
             'email' => ['required', 'string', 'email', 'max:254'],
             'locale' => ['required', Rule::enum(Locale::class)],
@@ -190,7 +190,7 @@ final class StoreFeedbackRequest extends FormRequest
 
     /**
      * Honeypot and minimum fill time are checked before validation. Suspicious
-     * requests get a regular 201 without being stored (concept 12.3).
+     * requests get a regular 201 without being stored.
      */
     private function rejectBotsSilently(): void
     {

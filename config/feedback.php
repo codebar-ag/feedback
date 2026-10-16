@@ -2,10 +2,20 @@
 
 declare(strict_types=1);
 
-$nullableInt = static function (string $key): ?int {
+/*
+ * Limit from the environment: unset or empty uses the default, 0 (or any
+ * value below 1) switches the limit off.
+ */
+$limit = static function (string $key, int $default): ?int {
     $value = env($key);
 
-    return $value === null || $value === '' ? null : (int) $value;
+    if ($value === null || $value === '') {
+        return $default;
+    }
+
+    $int = is_numeric($value) ? (int) $value : $default;
+
+    return $int > 0 ? $int : null;
 };
 
 return [
@@ -15,45 +25,12 @@ return [
     | Public endpoint
     |--------------------------------------------------------------------------
     |
-    | Base URL of this API as seen by the widget. Used for the init snippet
-    | printed by the feedback:project:* commands. Placeholder until the API
-    | domain is decided (see README, "Zu entscheiden").
+    | Base URL of this API as seen by the widget, e.g. https://feedback.codebar.ch.
+    | Used for the init snippet printed by the feedback:project:* commands.
     |
     */
 
     'endpoint' => env('FEEDBACK_ENDPOINT', env('APP_URL', 'http://localhost')),
-
-    /*
-    |--------------------------------------------------------------------------
-    | IP storage mode
-    |--------------------------------------------------------------------------
-    |
-    | "full" stores the client IP as received, "anonymized" zeroes the last
-    | IPv4 octet and the last 80 bits of an IPv6 address before storing.
-    |
-    */
-
-    'ip_mode' => env('FEEDBACK_IP_MODE', 'full'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Location source
-    |--------------------------------------------------------------------------
-    |
-    | "none" (or "off"), "cloudflare" (CF-IPCountry / CF-IPCity / CF-Postal-Code
-    | headers) or "maxmind" (local GeoLite2 database, see geoip:update).
-    |
-    */
-
-    'geo' => env('FEEDBACK_GEO', 'none'),
-
-    'maxmind' => [
-        'database_path' => env('FEEDBACK_GEOIP_PATH', storage_path('app/geoip/GeoLite2-City.mmdb')),
-        'account_id' => env('MAXMIND_ACCOUNT_ID'),
-        'license_key' => env('MAXMIND_LICENSE_KEY'),
-        'edition' => env('MAXMIND_EDITION', 'GeoLite2-City'),
-        'download_url' => env('MAXMIND_DOWNLOAD_URL', 'https://download.maxmind.com/geoip/databases/{edition}/download?suffix=tar.gz'),
-    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -68,18 +45,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Rate limits
+    | Rate limits and minimum fill time
     |--------------------------------------------------------------------------
     |
-    | Deliberately without defaults: null disables the respective limit. The
-    | daily limit per project is stored on the project (--limit option).
+    | Safe defaults for public installations. Set a value in .env to change
+    | it, 0 switches the respective limit off. The daily limit per project is
+    | stored on the project (--limit option, no default).
     |
     */
 
     'limits' => [
-        'per_ip_per_minute' => $nullableInt('FEEDBACK_LIMIT_PER_IP_PER_MINUTE'),
-        'per_project_per_minute' => $nullableInt('FEEDBACK_LIMIT_PER_PROJECT_PER_MINUTE'),
-        'min_elapsed_ms' => $nullableInt('FEEDBACK_MIN_ELAPSED_MS'),
+        'per_ip_per_minute' => $limit('FEEDBACK_LIMIT_PER_IP_PER_MINUTE', 10),
+        'per_project_per_minute' => $limit('FEEDBACK_LIMIT_PER_PROJECT_PER_MINUTE', 60),
+        'min_elapsed_ms' => $limit('FEEDBACK_MIN_ELAPSED_MS', 2000),
     ],
 
     /*

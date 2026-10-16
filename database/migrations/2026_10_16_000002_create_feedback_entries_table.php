@@ -25,9 +25,6 @@ return new class extends Migration
             $table->text('referrer')->nullable();
             $table->string('origin', 255);
             $table->string('ip', 45)->nullable();
-            $table->string('geo_country', 2)->nullable();
-            $table->string('geo_city', 120)->nullable();
-            $table->string('geo_postcode', 20)->nullable();
             $table->string('os_name', 64)->nullable();
             $table->string('os_version', 64)->nullable();
             $table->string('browser_name', 64)->nullable();
@@ -56,7 +53,6 @@ return new class extends Migration
             $table->string('widget_version', 20);
             $table->unsignedInteger('elapsed_ms')->nullable();
             $table->timestamp('completed_at')->nullable();
-            $table->text('internal_note')->nullable();
             $table->timestamps();
 
             $table->unique(['project_id', 'client_request_id']);

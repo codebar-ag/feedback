@@ -46,7 +46,7 @@ interface Shot {
   persisted: boolean;
 }
 
-/** Validates the form (concept 4.11.5). */
+/** Validates the form. */
 export function validate(
   values: { email: string; message: string; hasShot: boolean },
   rules: { needsEmail: boolean; shotRequired: boolean },

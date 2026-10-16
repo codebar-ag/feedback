@@ -5,13 +5,10 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Data\FeedbackSubmission;
-use App\Enums\IpMode;
 use App\Events\FeedbackReceived;
-use App\Geo\GeoLocator;
 use App\Models\FeedbackEntry;
 use App\Models\FeedbackProject;
 use App\Models\FeedbackScreenshot;
-use App\Support\IpAnonymizer;
 use App\Support\UserAgentParser;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
@@ -24,10 +21,7 @@ use RuntimeException;
  */
 final readonly class StoreFeedback
 {
-    public function __construct(
-        private GeoLocator $geo,
-        private UserAgentParser $agents,
-    ) {}
+    public function __construct(private UserAgentParser $agents) {}
 
     /** @return array{entry: FeedbackEntry, created: bool} */
     public function handle(FeedbackProject $project, FeedbackSubmission $submission, Request $request): array
@@ -86,8 +80,6 @@ final readonly class StoreFeedback
     private function attributes(FeedbackProject $project, FeedbackSubmission $submission, Request $request): array
     {
         $ip = $request->ip();
-        $mode = IpMode::tryFrom(is_string($mode = config('feedback.ip_mode')) ? $mode : '') ?? IpMode::Full;
-        $location = $ip !== null ? $this->geo->locate($request, $ip) : null;
         $userAgent = $request->userAgent() ?? $submission->client->userAgent;
         $agent = $this->agents->parse($userAgent, $submission->client->uaData);
         $client = $submission->client;
@@ -105,10 +97,8 @@ final readonly class StoreFeedback
             'page_title' => $submission->pageTitle,
             'referrer' => $submission->referrer,
             'origin' => (string) $request->headers->get('Origin'),
-            'ip' => IpAnonymizer::apply($ip, $mode),
-            'geo_country' => $location?->country,
-            'geo_city' => $location?->city,
-            'geo_postcode' => $location?->postcode,
+            // Stored as received (IPv4 or IPv6). Location lookups happen outside this app.
+            'ip' => $ip !== null && filter_var($ip, FILTER_VALIDATE_IP) !== false ? $ip : null,
             'os_name' => $agent->osName,
             'os_version' => $agent->osVersion,
             'browser_name' => $agent->browserName,

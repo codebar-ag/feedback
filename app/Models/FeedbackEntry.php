@@ -30,9 +30,6 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property string|null $referrer
  * @property string $origin
  * @property string|null $ip
- * @property string|null $geo_country
- * @property string|null $geo_city
- * @property string|null $geo_postcode
  * @property string|null $os_name
  * @property string|null $os_version
  * @property string|null $browser_name
@@ -61,7 +58,6 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property string $widget_version
  * @property int|null $elapsed_ms
  * @property Carbon|null $completed_at
- * @property string|null $internal_note
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read FeedbackProject $project
@@ -77,7 +73,7 @@ class FeedbackEntry extends Model
 
     /**
      * Incoming feedback is the record itself and is not logged. Only later
-     * changes (completed, reopened, note) are.
+     * changes (completed, reopened) are.
      *
      * @var list<string>
      */
@@ -115,12 +111,11 @@ class FeedbackEntry extends Model
         // Personal data (message, email, name, ip) is never copied into the log.
         return LogOptions::defaults()
             ->useLogName('feedback')
-            ->logOnly(['completed_at', 'internal_note'])
+            ->logOnly(['completed_at'])
             ->logOnlyDirty()
             ->dontLogEmptyChanges()
             ->setDescriptionForEvent(fn (string $event): string => match (true) {
                 $this->wasChanged('completed_at') => $this->completed_at === null ? 'reopened' : 'completed',
-                $this->wasChanged('internal_note') => 'note_changed',
                 default => $event,
             });
     }

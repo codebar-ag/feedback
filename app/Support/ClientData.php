@@ -6,7 +6,7 @@ namespace App\Support;
 
 /**
  * Browser and system data sent by the widget in the "client" JSON field
- * (concept 4.7). Every value is optional and normalized defensively.
+ *. Every value is optional and normalized defensively.
  */
 final readonly class ClientData
 {

@@ -43,7 +43,7 @@ test('required fields show * and errors, focus jumps to the first error', async 
   await expect(x.message).not.toHaveAttribute('aria-invalid', 'true');
 });
 
-// Board 8: validation without layout shift.
+// validation without layout shift.
 test('error messages do not shift the layout (0 px)', async ({ page }, info) => {
   await visit(page, sid(info));
   const x = w(page);
@@ -74,7 +74,7 @@ test('sending state: spinner, aria-busy, disabled', async ({ page }, info) => {
   await expect(x.success).toBeVisible();
 });
 
-// Board 12: typography 13 / 15 / 18.
+// typography 13 / 15 / 18.
 test('typography: labels and errors 13, fields and buttons 15', async ({ page }, info) => {
   await visit(page, sid(info));
   const x = w(page);

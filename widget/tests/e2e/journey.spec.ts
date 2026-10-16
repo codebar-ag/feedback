@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { drag, expectState, fill, requests, sid, takeShot, visit, w } from './helpers';
 
-// Board 1 "Customer Journey": all steps from the launcher to the confirmation.
+// all steps from the launcher to the confirmation.
 test('journey: launcher → form → screenshot → mark → send → thanks', async ({ page }, info) => {
   const id = sid(info);
   await visit(page, id);

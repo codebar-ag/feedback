@@ -1,5 +1,5 @@
 /**
- * Project color → tokens (concept 4.6). Mirrors app/Support/ProjectColor.php,
+ * Project color → tokens. Mirrors app/Support/ProjectColor.php,
  * both are tested against the same contrast values.
  */
 export const WHITE = '#FFFFFF';

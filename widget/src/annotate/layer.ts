@@ -4,7 +4,7 @@ import type { History } from './history.js';
 import { drawMarks, extendMark, finishMark, startMark, type Tool } from './tools.js';
 
 /**
- * Annotation surface (concept 4.11.6 step 3): the screenshot is shown in
+ * Annotation surface: the screenshot is shown in
  * document coordinates (it scrolls with the page), a viewport sized canvas
  * draws the marks. The mouse wheel scrolls the page, two fingers pan on
  * touch devices, one pointer draws.

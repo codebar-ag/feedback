@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { expectState, fill, mock, requests, sid, takeShot, visit, w } from './helpers';
 
-test('payload matches concept 5.2', async ({ page }, info) => {
+test('payload matches the API contract', async ({ page }, info) => {
   const id = sid(info);
   await visit(page, id, { identity: '1' });
   const x = w(page);

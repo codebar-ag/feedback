@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Events\FeedbackReceived;
-use App\Geo\GeoLocator;
 use App\Models\FeedbackEntry;
 use App\Models\FeedbackProject;
 use App\Models\FeedbackScreenshot;
@@ -261,34 +260,11 @@ it('removes control characters but keeps line breaks', function (): void {
         ->page_title->toBe('Titel[31m');
 });
 
-it('anonymizes the IP when configured', function (string $ip, string $stored): void {
-    config(['feedback.ip_mode' => 'anonymized']);
-
+it('stores the full IPv4 or IPv6 address', function (string $ip): void {
     postFeedback($this->project, ip: $ip)->assertCreated();
 
-    expect(FeedbackEntry::query()->sole()->ip)->toBe($stored);
-})->with([
-    ['203.0.113.77', '203.0.113.0'],
-    ['2001:db8:abcd:1234::1', '2001:db8:abcd::'],
-]);
-
-it('stores the location from Cloudflare headers', function (): void {
-    config(['feedback.geo' => 'cloudflare']);
-    app()->forgetInstance(GeoLocator::class);
-
-    postFeedback($this->project, headers: ['CF-IPCountry' => 'CH', 'CF-IPCity' => 'Meilen', 'CF-Postal-Code' => '8706'])->assertCreated();
-
-    expect(FeedbackEntry::query()->sole())
-        ->geo_country->toBe('CH')
-        ->geo_city->toBe('Meilen')
-        ->geo_postcode->toBe('8706');
-});
-
-it('ignores Cloudflare headers when geo is off', function (): void {
-    postFeedback($this->project, headers: ['CF-IPCountry' => 'CH'])->assertCreated();
-
-    expect(FeedbackEntry::query()->sole()->geo_country)->toBeNull();
-});
+    expect(FeedbackEntry::query()->sole()->ip)->toBe($ip);
+})->with(['203.0.113.77', '2001:db8:abcd:1234:5678:9abc:def0:1234']);
 
 it('never leaks internals on server errors', function (): void {
     FeedbackEntry::creating(fn () => throw new RuntimeException('SQLSTATE secret details'));

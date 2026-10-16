@@ -9,7 +9,7 @@ beforeEach(function (): void {
     $this->project = FeedbackProject::factory()->create(['allowed_origins' => [TEST_ORIGIN]]);
 });
 
-it('has no limit unless configured', function (): void {
+it('has no limit when switched off with 0', function (): void {
     foreach (range(1, 15) as $i) {
         postFeedback($this->project)->assertCreated();
     }
@@ -48,4 +48,11 @@ it('applies the daily limit of the project', function (): void {
     postFeedback($this->project)->assertCreated();
 
     expect(FeedbackEntry::query()->count())->toBe(3);
+});
+
+it('works with the database cache store', function (): void {
+    config(['cache.default' => 'database', 'feedback.limits.per_ip_per_minute' => 1]);
+
+    postFeedback($this->project)->assertCreated();
+    postFeedback($this->project)->assertTooManyRequests();
 });

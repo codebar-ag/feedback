@@ -27,7 +27,7 @@ const isSafariOrMobile = (): boolean =>
   /iPhone|iPad|Android|Mobile/i.test(navigator.userAgent) ||
   (/Safari\//.test(navigator.userAgent) && !/Chrome|Chromium|Edg|Firefox/.test(navigator.userAgent));
 
-/** Validates the init options and applies the defaults (concept 4.3). */
+/** Validates the init options and applies the defaults. */
 export function resolveOptions(o: FeedbackOptions): ResolvedOptions {
   if (!o || typeof o.projectKey !== 'string' || !o.projectKey.trim()) throw new Error('projectKey is required');
   if (typeof o.endpoint !== 'string' || !/^https?:\/\//.test(o.endpoint)) throw new Error('endpoint must be an http(s) URL');

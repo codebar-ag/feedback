@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { box, fill, mock, settle, sid, visit, w } from './helpers';
 
-// Board 7: own pages, same height as the form, one button.
+// own pages, same height as the form, one button.
 test('success page has the form height, is centered and closes after 3 s', async ({ page }, info) => {
   await visit(page, sid(info));
   const x = w(page);

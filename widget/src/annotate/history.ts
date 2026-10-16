@@ -2,7 +2,7 @@ import type { Mark } from '../types.js';
 
 type Step = { kind: 'add' } | { kind: 'clear'; previous: Mark[] };
 
-/** Marks plus undo stack. "Clear all" is itself undoable (concept 4.11.6). */
+/** Marks plus undo stack. "Clear all" is itself undoable. */
 export class History {
   private steps: Step[] = [];
   private items: Mark[];

@@ -11,7 +11,7 @@ export const MASK_COLOR = '#C9D1DC';
 /** Elements that are always masked: password fields and card data. */
 export const ALWAYS_MASKED = ['input[type="password"]', '[autocomplete^="cc-"]'];
 
-/** Document rectangles of all masked elements (concept 4.8). */
+/** Document rectangles of all masked elements. */
 export function maskRects(selectors: string[], root: ParentNode = document): Rect[] {
   const rects: Rect[] = [];
   const elements = new Set<Element>();

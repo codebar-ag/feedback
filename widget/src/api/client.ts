@@ -42,7 +42,7 @@ async function errorBody(res: Response): Promise<{ code?: string; fields?: Recor
 }
 
 /**
- * POST /v1/projects/{key}/feedback (concept 4.11.7): credentials omitted,
+ * POST /v1/projects/{key}/feedback: credentials omitted,
  * 20 s timeout, one retry after 1.5 s on network errors, timeouts and 5xx
  * with the same Idempotency-Key, one smaller screenshot on 413.
  */
