@@ -69,18 +69,18 @@ final class ListFeedbackCommand extends Command
         }
 
         if ($entries->isEmpty()) {
-            $this->components->info('Keine Feedbacks gefunden.');
+            $this->components->info('No feedback found.');
 
             return self::SUCCESS;
         }
 
         $this->table(
-            ['ID', 'Projekt', 'Erstellt', 'Status', 'E-Mail', 'Feedback'],
+            ['ID', 'Project', 'Created', 'Status', 'E-Mail', 'Feedback'],
             $entries->map(fn (FeedbackEntry $e): array => [
                 $e->id,
                 $e->project->name,
                 $e->created_at->format('Y-m-d H:i'),
-                $e->completed_at === null ? 'offen' : 'erledigt',
+                $e->completed_at === null ? 'open' : 'completed',
                 $e->email,
                 Str::limit(str_replace(["\r", "\n"], ' ', $e->message), 60),
             ])->all(),

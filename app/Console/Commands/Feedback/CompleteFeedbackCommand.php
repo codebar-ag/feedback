@@ -34,7 +34,7 @@ final class CompleteFeedbackCommand extends Command
                 $entry->save();
             }
 
-            $this->components->twoColumnDetail($entry->id, 'erledigt');
+            $this->components->twoColumnDetail($entry->id, 'completed');
         }
 
         return $status;

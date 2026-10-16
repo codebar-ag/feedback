@@ -19,7 +19,7 @@ it('lists the newest feedback, filtered', function (): void {
 
     test()->artisan('feedback:list', ['--project' => $this->project->public_key])
         ->expectsOutputToContain('Zeile 1 Zeile 2')
-        ->expectsOutputToContain('erledigt')
+        ->expectsOutputToContain('completed')
         ->assertExitCode(0);
 
     Artisan::call('feedback:list', ['--json' => true, '--project' => $this->project->public_key, '--open' => true]);
@@ -39,7 +39,7 @@ it('lists the newest feedback, filtered', function (): void {
 it('validates list options', function (): void {
     test()->artisan('feedback:list', ['--limit' => 'x'])->assertExitCode(2);
     test()->artisan('feedback:list', ['--project' => 'unknown'])->assertExitCode(1);
-    test()->artisan('feedback:list')->expectsOutputToContain('Keine Feedbacks')->assertExitCode(0);
+    test()->artisan('feedback:list')->expectsOutputToContain('No feedback found')->assertExitCode(0);
 });
 
 it('shows an entry with metadata and console', function (): void {
@@ -52,11 +52,11 @@ it('shows an entry with metadata and console', function (): void {
 
     test()->artisan('feedback:show', ['id' => $entry->id])
         ->expectsOutputToContain('Alpha')
-        ->expectsOutputToContain('offen')
+        ->expectsOutputToContain('open')
         ->expectsOutputToContain('Die Schaltfläche')
         ->expectsOutputToContain('200 × 400')
-        ->expectsOutputToContain('1 Einträge')
-        ->expectsOutputToContain('Gesendet von')
+        ->expectsOutputToContain('1 entries')
+        ->expectsOutputToContain('Sent from')
         ->assertExitCode(0);
 
     Artisan::call('feedback:show', ['id' => $entry->id, '--json' => true]);
@@ -77,7 +77,7 @@ it('shows an entry without screenshot', function (): void {
 
     test()->artisan('feedback:show', ['id' => $entry->id])
         ->expectsOutputToContain('render_failed')
-        ->expectsOutputToContain('erledigt')
+        ->expectsOutputToContain('completed')
         ->assertExitCode(0);
 });
 
@@ -86,7 +86,7 @@ it('exports json and screenshot', function (): void {
     $entry = FeedbackEntry::query()->sole();
     $dir = sys_get_temp_dir().'/feedback-export-'.uniqid();
 
-    test()->artisan('feedback:export', ['id' => $entry->id, '--path' => $dir])->expectsOutputToContain('Export abgeschlossen')->assertExitCode(0);
+    test()->artisan('feedback:export', ['id' => $entry->id, '--path' => $dir])->expectsOutputToContain('Export finished')->assertExitCode(0);
 
     $json = json_decode((string) file_get_contents("{$dir}/feedback-{$entry->id}.json"), true);
     $image = (string) file_get_contents("{$dir}/screenshot.jpg");

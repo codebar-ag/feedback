@@ -28,7 +28,7 @@ final class ShowProjectCommand extends Command
         }
 
         $this->printProject($project);
-        $this->components->twoColumnDetail('Offen / Erledigt', $project->entries()->open()->count().' / '.$project->entries()->completed()->count());
+        $this->components->twoColumnDetail('Open / Completed', $project->entries()->open()->count().' / '.$project->entries()->completed()->count());
 
         return self::SUCCESS;
     }

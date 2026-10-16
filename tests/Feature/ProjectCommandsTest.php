@@ -21,8 +21,8 @@ it('creates a project and prints key, color and snippet', function (): void {
         '--color' => '#0A7C66',
         '--limit' => '500',
     ])
-        ->expectsOutputToContain('Projekt angelegt.')
-        ->expectsOutputToContain('#0A7C66 · Schrift #FFFFFF · Kontrast 5.14:1')
+        ->expectsOutputToContain('Project created.')
+        ->expectsOutputToContain('#0A7C66 · text #FFFFFF · contrast 5.14:1')
         ->expectsOutputToContain("endpoint: 'https://feedback.example.test', locale: 'de_CH' })")
         ->assertExitCode(0);
 
@@ -47,7 +47,7 @@ it('creates a project as JSON', function (): void {
 
 it('shows the adjusted button color for mid tones', function (): void {
     test()->artisan('feedback:project:create', ['name' => 'Grau', '--origin' => ['https://a.ch'], '--color' => '#808080'])
-        ->expectsOutputToContain('Buttons #')
+        ->expectsOutputToContain('buttons #')
         ->assertExitCode(0);
 });
 
@@ -88,8 +88,8 @@ it('lists projects with open and completed counts', function (): void {
 
     test()->artisan('feedback:project:list')
         ->expectsTable(
-            ['Name', 'Schlüssel', 'Aktiv', 'Farbe', 'Origins', 'IPs', 'Offen', 'Erledigt'],
-            [['Alpha', $project->public_key, 'ja', '#0A7C66', 'https://www.beispiel.ch', '10.0.0.1', '2', '1']],
+            ['Name', 'Key', 'Active', 'Color', 'Origins', 'IPs', 'Open', 'Completed'],
+            [['Alpha', $project->public_key, 'yes', '#0A7C66', 'https://www.beispiel.ch', '10.0.0.1', '2', '1']],
         )
         ->assertExitCode(0);
 
@@ -98,7 +98,7 @@ it('lists projects with open and completed counts', function (): void {
 });
 
 it('lists no projects', function (): void {
-    test()->artisan('feedback:project:list')->expectsOutputToContain('Keine Projekte')->assertExitCode(0);
+    test()->artisan('feedback:project:list')->expectsOutputToContain('No projects yet')->assertExitCode(0);
 });
 
 it('shows a project by key or id', function (): void {
@@ -106,8 +106,8 @@ it('shows a project by key or id', function (): void {
 
     test()->artisan('feedback:project:show', ['key' => $project->public_key])
         ->expectsOutputToContain('Alpha')
-        ->expectsOutputToContain('(keine Einschränkung)')
-        ->expectsOutputToContain('Init-Snippet')
+        ->expectsOutputToContain('(no restriction)')
+        ->expectsOutputToContain('Init snippet')
         ->assertExitCode(0);
 
     expect(artisanJson('feedback:project:show', ['key' => $project->id])['public_key'])->toBe($project->public_key);
@@ -128,7 +128,7 @@ it('updates origins, IPs, color, limit and status', function (): void {
         '--color' => 'black',
         '--limit' => '100',
         '--deactivate' => true,
-    ])->expectsOutputToContain('Projekt aktualisiert.')->assertExitCode(0);
+    ])->expectsOutputToContain('Project updated.')->assertExitCode(0);
 
     expect($project->refresh())
         ->name->toBe('Neu')
@@ -141,7 +141,7 @@ it('updates origins, IPs, color, limit and status', function (): void {
     test()->artisan('feedback:project:update', ['key' => $project->id, '--activate' => true, '--limit' => 'none'])->assertExitCode(0);
     expect($project->refresh())->is_active->toBeTrue()->daily_limit->toBeNull();
 
-    test()->artisan('feedback:project:update', ['key' => $project->id])->expectsOutputToContain('Keine Änderungen.')->assertExitCode(0);
+    test()->artisan('feedback:project:update', ['key' => $project->id])->expectsOutputToContain('No changes.')->assertExitCode(0);
     expect(artisanJson('feedback:project:update', ['key' => $project->id, '--color' => '#ED813A'])['color']['on_primary'])->toBe('#101F3C');
 });
 
@@ -167,7 +167,7 @@ it('rotates the public key', function (): void {
     $old = $project->public_key;
 
     test()->artisan('feedback:project:rotate-key', ['key' => $old])
-        ->expectsOutputToContain('Schlüssel erneuert')
+        ->expectsOutputToContain('Key rotated')
         ->assertExitCode(0);
 
     expect($project->refresh()->public_key)->not->toBe($old)->toStartWith('fbk_live_');

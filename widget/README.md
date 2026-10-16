@@ -1,10 +1,8 @@
 # @codebar-ag/feedback-widget
 
-Feedback-Widget von codebar: Launcher, Formular, Full-Page-Screenshot mit Markierungen (Rechteck, Marker) und technische Diagnose (Browser, System, Konsolenfehler). Vanilla TypeScript im Shadow DOM, ohne Laufzeit-Abhängigkeiten im Kern (≤ 20 KB gzip). Der Screenshot-Teil wird lazy geladen.
+A feedback widget for websites and web apps: visitors describe a problem, mark it on a full-page screenshot and send it, together with browser data and console errors. Vanilla TypeScript in a Shadow DOM, 18 KB gzip, no runtime dependencies.
 
-Das Widget sendet an die codebar-Feedback-API (Laravel), siehe [github.com/codebar-ag/feedback](https://github.com/codebar-ag/feedback).
-
-## Installation
+It sends to the self-hosted [codebar Feedback API](https://github.com/codebar-ag/feedback).
 
 ```bash
 npm install @codebar-ag/feedback-widget
@@ -15,36 +13,25 @@ import { initFeedback } from '@codebar-ag/feedback-widget';
 
 const feedback = await initFeedback({
   projectKey: 'fbk_live_…',
-  endpoint: 'https://feedback.codebar.ch',
-  locale: 'de_CH',
-  identity: { id: '4711', name: 'Anna Muster', email: 'anna.muster@beispiel.ch' }, // optional
+  endpoint: 'https://feedback.example.com',
+  locale: 'en_CH',
+  identity: { id: '4711', name: 'Anna Muster', email: 'anna@example.com' }, // optional
 });
 
-feedback.on('after_send', ({ id }) => console.log('Feedback gespeichert', id));
+feedback.on('after_send', ({ id }) => console.log('Feedback stored', id));
 ```
 
-Script-Tag (IIFE, globale Variable `CodebarFeedback`):
+Without a build step:
 
 ```html
-<script async src="https://unpkg.com/@codebar-ag/feedback-widget/dist/feedback.iife.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@codebar-ag/feedback-widget@1/dist/feedback.iife.js" crossorigin="anonymous"></script>
 <script>
-  window.addEventListener('load', function () {
-    CodebarFeedback.init({ projectKey: 'fbk_live_…', endpoint: 'https://feedback.codebar.ch', locale: 'de_CH' });
-  });
+  CodebarFeedback.init({ projectKey: 'fbk_live_…', endpoint: 'https://feedback.example.com' });
 </script>
 ```
 
-Alle Optionen, Methoden, Events, CSP-Hinweise und Fehlerbehebung: [README des Repositorys](https://github.com/codebar-ag/feedback#widget).
+All options, methods and events are documented in the [repository README](https://github.com/codebar-ag/feedback#widget).
 
-## Entwicklung
-
-```bash
-npm ci
-npm run check     # Lint, Typen, Vitest, Build, Budget, publint, attw
-npm run e2e       # Playwright (Chromium, Firefox, WebKit, Mobile)
-npm run dev       # Mock-Server mit Fixture-Seiten: http://localhost:4173/fixtures/demo.html
-```
-
-## Lizenz
+## License
 
 MIT

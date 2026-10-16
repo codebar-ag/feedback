@@ -85,7 +85,7 @@ final class CreateProjectCommand extends Command
             return $this->printJson($this->projectData($project->refresh()));
         }
 
-        $this->components->info('Projekt angelegt.');
+        $this->components->info('Project created.');
         $this->printProject($project->refresh());
 
         return self::SUCCESS;
