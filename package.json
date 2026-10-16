@@ -1,0 +1,13 @@
+{
+  "name": "codebar-feedback",
+  "private": true,
+  "description": "Build entry for deployments: installs and builds the widget and copies it to public/widget/v1.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=26"
+  },
+  "scripts": {
+    "postinstall": "npm --prefix widget ci --audit false --fund false",
+    "build": "npm --prefix widget run build && npm --prefix widget run publish:api"
+  }
+}
