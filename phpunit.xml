@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+>
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+        <testsuite name="Arch">
+            <directory>tests/Arch</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>app</directory>
+        </include>
+    </source>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="APP_KEY" value="base64:2fl+Ktvkfl+Fuz4Qp/A75G2RTiWVA/ZoKZvp6fiiM10="/>
+        <env name="APP_URL" value="http://localhost"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="CACHE_STORE" value="array"/>
+        <env name="DB_CONNECTION" value="sqlite"/>
+        <env name="DB_DATABASE" value=":memory:"/>
+        <env name="LOG_CHANNEL" value="null"/>
+        <env name="FEEDBACK_ENDPOINT" value="https://feedback.example.test"/>
+        <env name="FEEDBACK_LIMIT_PER_IP_PER_MINUTE" value="0"/>
+        <env name="FEEDBACK_LIMIT_PER_PROJECT_PER_MINUTE" value="0"/>
+        <env name="FEEDBACK_MIN_ELAPSED_MS" value="0"/>
+        <env name="TRUSTED_PROXIES" value=""/>
+        <env name="OH_DEAR_HEALTH_CHECK_ENABLED" value="true"/>
+        <env name="OH_DEAR_HEALTH_CHECK_SECRET" value="test-secret"/>
+    </php>
+</phpunit>

@@ -1,0 +1,63 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font:
+    16px/1.5 Georgia,
+    serif;
+  color: #2b3b58;
+  background: #eef1f5;
+}
+header {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  height: 56px;
+  padding: 0 28px;
+  background: #fff;
+}
+header b {
+  margin-right: auto;
+  font-size: 20px;
+}
+main {
+  padding: 40px;
+}
+section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 0 0 24px;
+  min-height: 420px;
+}
+.secret {
+  background: #ff00ff;
+  color: #fff;
+  padding: 20px;
+  width: 300px;
+  height: 80px;
+}
+.ad {
+  background: #00ff00;
+  height: 60px;
+  width: 300px;
+}
+.tall {
+  height: 1600px;
+  background: linear-gradient(#fff, #cfd8e3);
+}
+/* Hostile host styles that must not leak into the shadow DOM. */
+button {
+  font-size: 40px !important;
+  color: red !important;
+}
+input,
+textarea {
+  background: yellow !important;
+}
+.l,
+.p,
+.s {
+  outline: 5px solid lime !important;
+}

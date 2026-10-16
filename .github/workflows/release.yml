@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Publish widget and GitHub release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      id-token: write
+    defaults:
+      run:
+        working-directory: widget
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+          cache: npm
+          cache-dependency-path: widget/package-lock.json
+          registry-url: https://registry.npmjs.org
+
+      - name: Check tag matches package version
+        run: test "v$(node -p "require('./package.json').version")" = "${GITHUB_REF_NAME}"
+
+      - run: npm ci
+      - run: npm run check
+
+      # Trusted publishing: no token, the package is linked to this workflow in
+      # the npm package settings. Provenance is attached automatically.
+      - name: Publish to npm
+        run: npm publish --access public
+
+      - name: GitHub release with changelog and SRI hash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          version="${TAG#v}"
+          notes="$(awk -v v="$version" '$0 ~ "^## \\[" v "\\]" {f=1; next} /^## \[/ {f=0} f' ../CHANGELOG.md)"
+          sri="$(node -p "require('./dist/sri.json')['feedback.iife.js']")"
+          fence="$(printf '\140\140\140')"
+          {
+            printf '%s\n\n### Script-Tag\n\n%shtml\n' "$notes" "$fence"
+            printf '<script async src="https://feedback.codebar.ch/widget/v1/feedback.js" integrity="%s" crossorigin="anonymous"></script>\n%s\n' "$sri" "$fence"
+          } > notes.md
+          gh release create "$TAG" dist/feedback.iife.js dist/feedback.js dist/sri.json --title "$TAG" --notes-file notes.md
