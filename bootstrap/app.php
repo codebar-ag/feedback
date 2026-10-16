@@ -6,6 +6,7 @@ use App\Enums\ErrorCode;
 use App\Http\Middleware\ApplyProjectCors;
 use App\Http\Middleware\EnforceIpPolicy;
 use App\Http\Middleware\EnforceOriginPolicy;
+use App\Http\Middleware\NoIndex;
 use App\Http\Middleware\ResolveProject;
 use App\Http\Responses\ApiError;
 use Illuminate\Console\Scheduling\Schedule;
@@ -38,6 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // CORS is applied per project by ApplyProjectCors, the post size check
         // runs inside the route group so that 413 responses carry CORS headers.
         $middleware->remove([HandleCors::class, ValidatePostSize::class]);
+        $middleware->append(NoIndex::class);
 
         // The feedback chain must run before throttle:feedback.
         $middleware->priority([

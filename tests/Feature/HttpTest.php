@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Models\FeedbackProject;
 
 it('reports health without details', function (): void {
-    test()->getJson('/up')->assertOk()->assertExactJson(['status' => 'ok']);
+    test()->getJson('/up')->assertOk()->assertExactJson(['status' => 'ok'])->assertHeader('X-Robots-Tag', 'noindex, nofollow');
 });
 
 it('reports a failing database as down', function (): void {
@@ -22,8 +22,11 @@ it('reports a failing database as down', function (): void {
     }
 });
 
-it('renders unknown routes as JSON 404', function (): void {
-    test()->get('/')->assertNotFound()->assertExactJson(['error' => ['code' => 'not_found']]);
+it('blocks browser access to the root and unknown routes', function (): void {
+    test()->get('/', ['Accept' => 'text/html'])
+        ->assertNotFound()
+        ->assertExactJson(['error' => ['code' => 'not_found']])
+        ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
     test()->get('/api/feedback')->assertNotFound();
 });
 

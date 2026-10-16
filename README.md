@@ -56,6 +56,7 @@ Zum Ausprobieren genügt SQLite: `touch database/database.sqlite && php artisan 
 - MySQL: die Migration legt `LONGBLOB` an, dafür `max_allowed_packet` mindestens 16 MB. PostgreSQL (`bytea`) und SQLite brauchen nichts.
 - Hinter Load Balancer oder CDN `TRUSTED_PROXIES` setzen, sonst sehen IP-Freigabe und Rate Limits die Adresse des Proxys.
 - Keine eigenen CORS-Header im Webserver für `/v1/`, die API setzt sie pro Projekt.
+- Im Browser zeigt die API nichts an: `/` und alle unbekannten Pfade antworten mit 404, jede Antwort trägt `X-Robots-Tag: noindex` und `robots.txt` sperrt Suchmaschinen.
 - Health-Check: `GET /up` (200 `{"status":"ok"}`, 503 bei Datenbankproblem). Für Oh Dear zusätzlich den Endpoint aktivieren (siehe Konfiguration). Die Checks (Datenbank, Cache, Debug-Modus, Optimierung, Umgebung, Sicherheitshinweise) laufen auch per Scheduler (`php artisan schedule:run` jede Minute).
 - Die Screenshots liegen in der Datenbank: tägliche Sicherung mit Wiederherstellungstest. Löschfristen regelst du direkt in der Datenbank.
 
