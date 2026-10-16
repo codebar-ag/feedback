@@ -113,7 +113,7 @@ async function api(req: IncomingMessage, res: ServerResponse, sid: string, rest:
     const form = await new Request('http://x', {
       method: 'POST',
       headers: { 'content-type': String(req.headers['content-type']) },
-      body: raw,
+      body: new Uint8Array(raw),
     }).formData();
     const fields: Record<string, string> = {};
     let screenshot: Recorded['screenshot'] = null;
