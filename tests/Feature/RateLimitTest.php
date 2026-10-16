@@ -49,3 +49,10 @@ it('applies the daily limit of the project', function (): void {
 
     expect(FeedbackEntry::query()->count())->toBe(3);
 });
+
+it('works with the database cache store', function (): void {
+    config(['cache.default' => 'database', 'feedback.limits.per_ip_per_minute' => 1]);
+
+    postFeedback($this->project)->assertCreated();
+    postFeedback($this->project)->assertTooManyRequests();
+});

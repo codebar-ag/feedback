@@ -43,7 +43,7 @@ Voraussetzungen: PHP 8.5 (`pdo_pgsql`, `pdo_mysql` oder `pdo_sqlite`, `fileinfo`
 git clone https://github.com/codebar-ag/feedback.git && cd feedback
 composer install --no-dev --optimize-autoloader
 cp .env.example .env && php artisan key:generate
-# in .env: DB_CONNECTION=pgsql, DB_HOST, DB_DATABASE, DB_USERNAME, DB_PASSWORD und FEEDBACK_ENDPOINT
+# in .env: DB_CONNECTION=pgsql, DB_HOST, DB_DATABASE, DB_USERNAME, DB_PASSWORD (bei Neon & Co. DB_SSLMODE=require) und FEEDBACK_ENDPOINT
 php artisan migrate --force
 php artisan config:cache && php artisan route:cache
 ```
@@ -71,7 +71,7 @@ Alles in [`config/feedback.php`](config/feedback.php), gesetzt über `.env`:
 | `FEEDBACK_LIMIT_PER_PROJECT_PER_MINUTE` | `60` | Anfragen pro Minute je Projekt, `0` = aus |
 | `FEEDBACK_MIN_ELAPSED_MS` | `2000` | Mindestzeit zwischen Öffnen und Senden, schnellere Anfragen werden still verworfen, `0` = aus |
 | `TRUSTED_PROXIES` | leer | Kommagetrennte Proxy-IPs/CIDR oder `*` |
-| `CACHE_STORE` | `file` | Store der Rate Limits, bei mehreren Servern einen gemeinsamen wählen |
+| `CACHE_STORE` | `file` | Store der Rate Limits: `file` für einen Server, `database` oder `redis` bei mehreren Instanzen |
 
 Dazu kommt ein optionales Tageslimit pro Projekt (`--limit`). Gespeichert wird die volle IP-Adresse (IPv4 oder IPv6). Einen Standort ermittelt die App bewusst nicht, das kann eine andere Anwendung aus der IP übernehmen.
 

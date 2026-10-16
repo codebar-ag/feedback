@@ -34,7 +34,7 @@ Script-Tag (IIFE, globale Variable `CodebarFeedback`):
 </script>
 ```
 
-Alle Optionen, Methoden, Events, Framework-Beispiele, CSP-Hinweise und Fehlerbehebung: [docs/widget-setup.md](https://github.com/codebar-ag/feedback/blob/main/docs/widget-setup.md).
+Alle Optionen, Methoden, Events, Framework-Beispiele, CSP-Hinweise und Fehlerbehebung: [README](https://github.com/codebar-ag/feedback.
 
 ## Entwicklung
 
@@ -42,7 +42,7 @@ Alle Optionen, Methoden, Events, Framework-Beispiele, CSP-Hinweise und Fehlerbeh
 npm ci
 npm run check     # Lint, Typen, Vitest, Build, Budget, publint, attw
 npm run e2e       # Playwright (Chromium, Firefox, WebKit, Mobile)
-npm run dev       # Mock-Server mit Fixture-Seiten: http://localhost:4173/fixtures/index.html
+npm run dev       # Mock-Server mit Fixture-Seiten: http://localhost:4173/fixtures/demo.html
 ```
 
 ## Lizenz
