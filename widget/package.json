@@ -38,9 +38,9 @@
   "scripts": {
     "dev": "npm run build && node --experimental-strip-types tests/e2e/server.ts",
     "build": "node scripts/build.mjs",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
-    "lint": "eslint . && prettier --check . ../e2e",
-    "format": "prettier --write . ../e2e && eslint . --fix",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p ../e2e/tsconfig.json",
+    "lint": "eslint . && prettier --check . \"../e2e/*.{ts,json}\" \"../e2e/fixtures/**\"",
+    "format": "prettier --write . \"../e2e/*.{ts,json}\" \"../e2e/fixtures/**\" && eslint . --fix",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "size": "size-limit",

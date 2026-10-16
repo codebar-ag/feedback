@@ -13,11 +13,7 @@
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": ["node"],
-    "paths": {
-      "@playwright/test": ["./node_modules/@playwright/test"],
-      "@axe-core/playwright": ["./node_modules/@axe-core/playwright"]
-    }
+    "types": ["node"]
   },
-  "include": ["src", "tests", "fixtures", "*.ts", "../e2e/**/*.ts"]
+  "include": ["src", "tests", "fixtures", "*.ts"]
 }
