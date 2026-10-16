@@ -1,0 +1,5 @@
+[
+  { "name": "core (ESM)", "path": "dist/feedback.js", "gzip": true, "limit": "20 KB" },
+  { "name": "core (IIFE)", "path": "dist/feedback.iife.js", "gzip": true, "limit": "20 KB" },
+  { "name": "screenshot chunk (lazy)", "path": "dist/chunks/capture-*.js", "gzip": true, "limit": "15 KB" }
+]

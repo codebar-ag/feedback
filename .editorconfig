@@ -16,3 +16,6 @@ indent_size = 2
 
 [docker-compose.yml]
 indent_size = 4
+
+[*.{ts,js,mjs,cjs,json,html,css}]
+indent_size = 2
