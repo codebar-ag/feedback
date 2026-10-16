@@ -33,7 +33,8 @@ export default defineConfig({
       command: `php -S 127.0.0.1:${API_PORT} ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php`,
       cwd: `${ROOT}/public`,
       env: LARAVEL_ENV as Record<string, string>,
-      url: `http://127.0.0.1:${API_PORT}/up`,
+      // A static file: /up needs the database, which global setup creates after the servers start.
+      url: `http://127.0.0.1:${API_PORT}/robots.txt`,
       reuseExistingServer: false,
       stdout: "ignore",
       stderr: "pipe",
