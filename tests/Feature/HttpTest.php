@@ -38,5 +38,5 @@ it('renders wrong methods as JSON 405', function (): void {
 it('exposes no web or auth routes', function (): void {
     $uris = collect(app('router')->getRoutes()->getRoutes())->map->uri()->sort()->values()->all();
 
-    expect($uris)->toBe(['up', 'v1/projects/{publicKey}/config', 'v1/projects/{publicKey}/feedback', 'v1/projects/{publicKey}/feedback']);
+    expect($uris)->toBe(['oh-dear-health-check-results', 'up', 'v1/projects/{publicKey}/config', 'v1/projects/{publicKey}/feedback', 'v1/projects/{publicKey}/feedback']);
 });

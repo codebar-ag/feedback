@@ -84,3 +84,10 @@ it('supports a read replica as configured by Laravel Cloud', function (): void {
     expect($connection)->toBeInstanceOf(PostgresConnection::class)
         ->and(config('database.connections.pgsql.write.host'))->toBe(config('database.connections.pgsql.host'));
 });
+
+it('uses DB_READ_HOST and DB_WRITE_HOST with DB_HOST as fallback', function (): void {
+    foreach (['mysql', 'mariadb', 'pgsql'] as $driver) {
+        expect(config("database.connections.{$driver}.read.host"))->toBe(config("database.connections.{$driver}.host"))
+            ->and(config("database.connections.{$driver}.write.host"))->toBe(config("database.connections.{$driver}.host"));
+    }
+});
