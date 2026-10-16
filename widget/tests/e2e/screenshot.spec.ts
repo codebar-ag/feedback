@@ -73,7 +73,17 @@ test('marks stick to the page while scrolling (document coordinates)', async ({ 
   await takeShot(page);
   await page.mouse.wheel(0, 600);
   await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(300);
-  const scrolled = await page.evaluate(() => Math.round(scrollY));
+  // WebKit finishes wheel scrolling asynchronously: wait until the position is stable.
+  let last = -1;
+  await expect
+    .poll(async () => {
+      const now = await page.evaluate(() => Math.round(scrollY));
+      const stable = now === last;
+      last = now;
+      return stable;
+    })
+    .toBe(true);
+  const scrolled = last;
   await drag(page, [100, 100], [200, 200]);
   expect(await marks(page)).toEqual([{ type: 'rect', x: 100, y: 100 + scrolled, w: 100, h: 100 }]);
   await expect(x.toolbar).toBeInViewport();
