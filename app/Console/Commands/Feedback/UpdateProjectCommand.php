@@ -117,7 +117,7 @@ final class UpdateProjectCommand extends Command
             return $this->printJson($this->projectData($project));
         }
 
-        $this->components->info($dirty ? 'Projekt aktualisiert.' : 'Keine Änderungen.');
+        $this->components->info($dirty ? 'Project updated.' : 'No changes.');
         $this->printProject($project);
 
         return self::SUCCESS;

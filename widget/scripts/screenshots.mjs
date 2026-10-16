@@ -1,15 +1,16 @@
-// Renders the README screenshots (../.github/screenshots/*.png) from
-// fixtures/demo.html. Needs a build (npm run build) and Playwright browsers.
+// Renders the README screenshots (../.github/screenshots/*.png): the widget
+// alone on an empty page. Needs a build (npm run build) and Playwright browsers.
 import { spawn } from 'node:child_process';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, rmSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { chromium, devices } from '@playwright/test';
+import { chromium } from '@playwright/test';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const out = resolve(root, '../.github/screenshots');
 const port = 4179;
 const base = `http://localhost:${port}`;
+rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 
 const server = spawn(process.execPath, ['--experimental-strip-types', 'tests/e2e/server.ts'], {
@@ -20,6 +21,7 @@ const server = spawn(process.execPath, ['--experimental-strip-types', 'tests/e2e
 await new Promise((r) => setTimeout(r, 1500));
 
 const browser = await chromium.launch();
+const w = (page, sel) => page.locator('codebar-feedback').locator(sel);
 const settle = (page) =>
   page.locator('codebar-feedback').evaluate(async (host) => {
     await Promise.all(
@@ -30,65 +32,62 @@ const settle = (page) =>
     );
   });
 
-async function open(context, sid, params = {}) {
+async function open(context, sid, params = {}, responses = [{ status: 201, delayMs: 200 }]) {
   const page = await context.newPage();
-  await page.request.post(`${base}/s/${sid}/__mock`, { data: { color: '#0A7C66', responses: [{ status: 201, delayMs: 300 }] } });
-  await page.goto(`${base}/fixtures/demo.html?${new URLSearchParams({ sid, ...params })}`);
+  await page.request.post(`${base}/s/${sid}/__mock`, { data: { color: '#0A7C66', responses } });
+  await page.goto(`${base}/fixtures/blank.html?${new URLSearchParams({ sid, locale: 'en_CH', ...params })}`);
   await page.locator('html[data-feedback-ready="1"]').waitFor();
-  await page.waitForTimeout(300);
+  await page.waitForTimeout(200);
   return page;
 }
 
-const w = (page, sel) => page.locator('codebar-feedback').locator(sel);
+/** Screenshot of the panel and launcher with some margin. */
+async function shotWidget(page, name) {
+  await page.mouse.move(0, 0);
+  await settle(page);
+  const panel = await w(page, 'section.p').boundingBox();
+  const launcher = await w(page, 'button.l').boundingBox();
+  const pad = 28;
+  const x = Math.min(panel.x, launcher.x) - pad;
+  const y = panel.y - pad;
+  const right = Math.max(panel.x + panel.width, launcher.x + launcher.width) + pad;
+  const bottom = launcher.y + launcher.height + pad;
+  await page.screenshot({ path: resolve(out, name), clip: { x, y, width: right - x, height: bottom - y } });
+}
 
 try {
-  const desktop = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 2 });
+  const desktop = await browser.newContext({ viewport: { width: 1000, height: 820 }, deviceScaleFactor: 2 });
 
-  // 1. Form without identity
   let page = await open(desktop, 'shot-form');
   await w(page, 'button.l').click();
-  await w(page, 'input[type=email]').fill('anna@beispiel.ch');
-  await w(page, 'textarea').fill('Die Schaltfläche «Jetzt starten» reagiert auf dem iPad nicht.');
-  await page.mouse.move(0, 0);
-  await settle(page);
-  await page.screenshot({ path: resolve(out, 'form.png') });
+  await w(page, 'input[type=email]').fill('anna@example.com');
+  await w(page, 'textarea').fill('The "Get started" button does nothing on my iPad.');
+  await w(page, 'textarea').blur();
+  await shotWidget(page, 'form.png');
 
-  // 2. Identity, screenshot preview and validation-free form
   page = await open(desktop, 'shot-identity', { identity: '1' });
   await w(page, 'button.l').click();
-  await w(page, 'textarea').fill('Im Kundenportal fehlt der Export als CSV.');
+  await w(page, 'textarea').fill('The CSV export is missing in the customer portal.');
   await w(page, '.tr button').first().click();
   await w(page, '.tb').waitFor();
-  await page.mouse.move(700, 150);
+  await page.mouse.move(330, 150);
   await page.mouse.down();
-  await page.mouse.move(1140, 330, { steps: 8 });
+  await page.mouse.move(670, 300, { steps: 8 });
   await page.mouse.up();
   await w(page, '.tb [data-tool=marker]').click();
-  await page.mouse.move(60, 470);
+  await page.mouse.move(350, 350);
   await page.mouse.down();
-  await page.mouse.move(380, 476, { steps: 12 });
+  await page.mouse.move(640, 354, { steps: 12 });
   await page.mouse.up();
-  await page.mouse.move(640, 760);
-  await page.screenshot({ path: resolve(out, 'annotate.png') });
+  await page.mouse.move(980, 800);
+  await page.screenshot({ path: resolve(out, 'annotate.png'), clip: { x: 290, y: 0, width: 420, height: 400 } });
   await w(page, '.tb [data-action=done]').click();
-  await page.mouse.move(0, 0);
-  await settle(page);
-  await page.screenshot({ path: resolve(out, 'identity.png') });
+  await w(page, 'textarea').blur();
+  await shotWidget(page, 'identity.png');
 
-  // 3. Success page
   await w(page, 'button[type=submit]').click();
   await w(page, '.st.ok').waitFor();
-  await page.waitForTimeout(150);
-  await page.screenshot({ path: resolve(out, 'success.png') });
-
-  // 4. Mobile bottom sheet
-  const mobile = await browser.newContext({ ...devices['iPhone 15'] });
-  page = await open(mobile, 'shot-mobile', { locale: 'fr_CH' });
-  await w(page, 'button.l').tap();
-  await w(page, 'input[type=email]').fill('luc@exemple.ch');
-  await w(page, 'textarea').fill('Le bouton de connexion est caché par la barre.');
-  await settle(page);
-  await page.screenshot({ path: resolve(out, 'mobile.png') });
+  await shotWidget(page, 'success.png');
 
   console.log(`screenshots written to ${out}`);
 } finally {

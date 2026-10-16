@@ -1,125 +1,84 @@
-# codebar Feedback
+<h1 align="center">codebar Feedback</h1>
 
-[![Tests](https://github.com/codebar-ag/feedback/actions/workflows/tests.yml/badge.svg)](https://github.com/codebar-ag/feedback/actions/workflows/tests.yml)
-[![Widget](https://github.com/codebar-ag/feedback/actions/workflows/widget.yml/badge.svg)](https://github.com/codebar-ag/feedback/actions/workflows/widget.yml)
-[![E2E](https://github.com/codebar-ag/feedback/actions/workflows/e2e.yml/badge.svg)](https://github.com/codebar-ag/feedback/actions/workflows/e2e.yml)
-[![Security](https://github.com/codebar-ag/feedback/actions/workflows/security.yml/badge.svg)](https://github.com/codebar-ag/feedback/actions/workflows/security.yml)
-[![PHP 8.5](https://img.shields.io/badge/PHP-8.5-777BB4?logo=php&logoColor=white)](https://www.php.net/)
-[![Laravel 13](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white)](https://laravel.com/)
-[![Node 26](https://img.shields.io/badge/Node-26-5FA04E?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
-[![npm](https://img.shields.io/npm/v/@codebar-ag/feedback-widget?label=npm)](https://www.npmjs.com/package/@codebar-ag/feedback-widget)
-[![Lizenz: MIT](https://img.shields.io/badge/Lizenz-MIT-blue.svg)](LICENSE)
+<p align="center">
+  A self-hosted feedback widget for websites and web apps.<br>
+  Visitors describe the problem, mark it on a full-page screenshot and send it. Browser data and console errors come along automatically.
+</p>
 
-Ein schlankes, selbst gehostetes Feedback-Widget für Websites und Web-Apps. Besucher schreiben ihr Feedback, markieren auf einem Screenshot der ganzen Seite, was sie meinen, und senden es ab. Browserdaten und Konsolenfehler kommen automatisch mit. Die Feedbacks landen über eine eigene Laravel-API in deiner Datenbank, verwaltet wird per Artisan.
+<p align="center">
+  <a href="https://github.com/codebar-ag/feedback/actions/workflows/tests.yml"><img src="https://github.com/codebar-ag/feedback/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
+  <a href="https://github.com/codebar-ag/feedback/actions/workflows/e2e.yml"><img src="https://github.com/codebar-ag/feedback/actions/workflows/e2e.yml/badge.svg" alt="E2E"></a>
+  <a href="https://www.npmjs.com/package/@codebar-ag/feedback-widget"><img src="https://img.shields.io/npm/v/@codebar-ag/feedback-widget?label=npm" alt="npm"></a>
+  <img src="https://img.shields.io/badge/PHP-8.5-777BB4?logo=php&logoColor=white" alt="PHP 8.5">
+  <img src="https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white" alt="Laravel 13">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
+</p>
 
-| Formular | Markieren | Mit Identität | Gesendet |
-|---|---|---|---|
-| ![Formular](.github/screenshots/form.png) | ![Markieren](.github/screenshots/annotate.png) | ![Mit Identität und Screenshot](.github/screenshots/identity.png) | ![Erfolgsseite](.github/screenshots/success.png) |
+<p align="center">
+  <img src=".github/screenshots/form.png" width="250" alt="Feedback form">
+  &nbsp;
+  <img src=".github/screenshots/identity.png" width="250" alt="Signed-in user with a screenshot attached">
+  &nbsp;
+  <img src=".github/screenshots/success.png" width="250" alt="Confirmation">
+</p>
 
-<img src=".github/screenshots/mobile.png" alt="Mobile Ansicht (Französisch)" width="240" align="right">
+## Features
 
-**Funktionen**
+- **Full-page screenshots** on demand, with a rectangle and a highlighter to mark the problem
+- **Privacy first**: mask sensitive elements with `data-feedback-mask`, password fields are always hidden, console logs are redacted in the browser
+- **Drafts survive** closing the panel, navigating and reloading the page
+- **Diagnostics**: console errors, failed requests, browser, OS, viewport and page size
+- **Identity**: pass the signed-in user and the email field becomes "Sending as"
+- **Four languages** (`de_CH`, `fr_CH`, `en_CH`, `it_CH`) and a project color with automatic contrast
+- **Accessible** (WCAG 2.2 AA), isolated in a Shadow DOM, 18 KB gzip, no runtime dependencies
+- **Your data, your server**: a small Laravel API with origin and IP allowlists, rate limits and a honeypot. Screenshots are stored in your database
 
-- Launcher, Formular und Bottom-Sheet auf Mobile, im Shadow DOM isoliert von deinem CSS
-- Screenshot der ganzen Seite auf Klick, markieren mit Rechteck und Marker
-- Verdecken sensibler Bereiche (`data-feedback-mask`, Passwortfelder immer)
-- Entwurf bleibt bei Schliessen, Seitenwechsel und Reload erhalten (24 h)
-- Konsolenfehler, fehlgeschlagene Requests und Browserdaten, im Browser redigiert
-- `de_CH`, `fr_CH`, `en_CH`, `it_CH`, Projektfarbe mit automatischem Kontrast
-- Domain- und IP-Freigabe pro Projekt, Rate Limits, Honeypot, Idempotenz
-- WCAG 2.2 AA, Kern 18 KB gzip, keine Laufzeit-Abhängigkeiten
+<img src=".github/screenshots/annotate.png" width="300" align="right" alt="Marking mode">
 
-Das Repository enthält die **Laravel-API** im Wurzelverzeichnis und das **Widget** unter [`widget/`](widget), veröffentlicht als npm-Paket [`@codebar-ag/feedback-widget`](https://www.npmjs.com/package/@codebar-ag/feedback-widget).
+## How it works
+
+The repository contains two parts:
+
+- **API** (this folder): a Laravel 13 app that receives the feedback and stores it in PostgreSQL, MySQL or SQLite. Projects and feedback are managed with Artisan commands, there is no admin UI.
+- **Widget** ([`widget/`](widget)): the npm package [`@codebar-ag/feedback-widget`](https://www.npmjs.com/package/@codebar-ag/feedback-widget) that you add to your website.
+
+```
+your website ── @codebar-ag/feedback-widget ── POST /v1/projects/{key}/feedback ──▶ feedback API ──▶ database
+```
 
 <br clear="right">
 
-[API installieren](#api-installieren) · [Konfiguration](#konfiguration) · [Projekte und Feedbacks](#projekte-und-feedbacks) · [Widget](#widget) · [API-Referenz](#api-referenz) · [Sicherheit und Datenschutz](#sicherheit-und-datenschutz) · [Entwicklung](#entwicklung) · [Release](#release)
+## Quick start
 
-## API installieren
-
-Voraussetzungen: PHP 8.5 (`pdo_pgsql`, `pdo_mysql` oder `pdo_sqlite`, `fileinfo`, `intl`), Composer und eine Datenbank: PostgreSQL 17 (empfohlen), MySQL 8 / MariaDB oder SQLite. Kein Queue-Worker, kein Redis, kein Objektspeicher. Es gibt nichts zu seeden: Projekte legst du per Artisan an.
+**1. Install the API**
 
 ```bash
 git clone https://github.com/codebar-ag/feedback.git && cd feedback
-composer install --no-dev --optimize-autoloader
+composer install
 cp .env.example .env && php artisan key:generate
-# in .env: DB_CONNECTION=pgsql, DB_HOST, DB_DATABASE, DB_USERNAME, DB_PASSWORD (bei Neon & Co. DB_SSLMODE=require) und FEEDBACK_ENDPOINT
-php artisan migrate --force
-php artisan config:cache && php artisan route:cache
+touch database/database.sqlite && php artisan migrate
+php artisan serve
 ```
 
-Zum Ausprobieren genügt SQLite: `touch database/database.sqlite && php artisan migrate && php artisan serve`.
-
-**Betrieb**
-
-- Screenshots sind bis 6 MB gross: `post_max_size` und `upload_max_filesize` mindestens 8 MB, bei nginx `client_max_body_size 8m`.
-- MySQL: die Migration legt `LONGBLOB` an, dafür `max_allowed_packet` mindestens 16 MB. PostgreSQL (`bytea`) und SQLite brauchen nichts.
-- Hinter Load Balancer oder CDN `TRUSTED_PROXIES` setzen, sonst sehen IP-Freigabe und Rate Limits die Adresse des Proxys.
-- Keine eigenen CORS-Header im Webserver für `/v1/`, die API setzt sie pro Projekt.
-- Im Browser zeigt die API nichts an: `/` und alle unbekannten Pfade antworten mit 404, jede Antwort trägt `X-Robots-Tag: noindex` und `robots.txt` sperrt Suchmaschinen.
-- Health-Check: `GET /up` (200 `{"status":"ok"}`, 503 bei Datenbankproblem). Für Oh Dear zusätzlich den Endpoint aktivieren (siehe Konfiguration). Die Checks (Datenbank, Cache, Debug-Modus, Optimierung, Umgebung, Sicherheitshinweise) laufen auch per Scheduler (`php artisan schedule:run` jede Minute).
-- Die Screenshots liegen in der Datenbank: tägliche Sicherung mit Wiederherstellungstest. Löschfristen regelst du direkt in der Datenbank.
-
-## Konfiguration
-
-Alles in [`config/feedback.php`](config/feedback.php), gesetzt über `.env`:
-
-| Variable | Standard | Bedeutung |
-|---|---|---|
-| `FEEDBACK_ENDPOINT` | `APP_URL` | Öffentliche URL der API für das Init-Snippet, z. B. `https://feedback.codebar.ch` |
-| `FEEDBACK_DEFAULT_COLOR` | `black` | Farbe für Projekte ohne eigene Farbe (`black`, `white` oder Hex) |
-| `FEEDBACK_LIMIT_PER_IP_PER_MINUTE` | `10` | Anfragen pro Minute je IP und Projekt, `0` = aus |
-| `FEEDBACK_LIMIT_PER_PROJECT_PER_MINUTE` | `60` | Anfragen pro Minute je Projekt, `0` = aus |
-| `FEEDBACK_MIN_ELAPSED_MS` | `2000` | Mindestzeit zwischen Öffnen und Senden, schnellere Anfragen werden still verworfen, `0` = aus |
-| `TRUSTED_PROXIES` | leer | Kommagetrennte Proxy-IPs/CIDR oder `*` |
-| `CACHE_STORE` | `file` | Store der Rate Limits: `file` für einen Server, `database` oder `redis` bei mehreren Instanzen |
-| `DB_READ_HOST`, `DB_WRITE_HOST` | `DB_HOST` | Getrennte Hosts für Lese-Replica und Primary (auch Laravel Cloud) |
-| `OH_DEAR_HEALTH_CHECK_ENABLED`, `OH_DEAR_HEALTH_CHECK_SECRET`, `OH_DEAR_HEALTH_CHECK_PATH` | aus, –, `/oh-dear-health-check-results` | [Oh Dear Application Health](https://ohdear.app/docs/features/application-health-monitoring) über `spatie/laravel-health` |
-
-Dazu kommt ein optionales Tageslimit pro Projekt (`--limit`). Gespeichert wird die volle IP-Adresse (IPv4 oder IPv6). Einen Standort ermittelt die App bewusst nicht, das kann eine andere Anwendung aus der IP übernehmen.
-
-## Projekte und Feedbacks
-
-Es gibt keine Verwaltungsoberfläche, alles läuft über Artisan:
+**2. Create a project**
 
 ```bash
-php artisan feedback:project:create "Beispiel Website" --origin=https://www.beispiel.ch --origin="https://*.beispiel.ch" --color="#0A7C66"
+php artisan feedback:project:create "Example Website" --origin=https://www.example.com --color="#0A7C66"
 ```
 
 ```
-   INFO  Projekt angelegt.
+   INFO  Project created.
 
-  Name .......................................................................... Beispiel Website
-  Public Key ..................................................... fbk_live_MHoE8S6QzLaeMWMYt4GWP4
-  Aktiv ....................................................................................... ja
-  Origins ......................................... https://www.beispiel.ch, https://*.beispiel.ch
-  IPs ...................................................................... (keine Einschränkung)
-  Farbe .............................................. #0A7C66 · Schrift #FFFFFF · Kontrast 5.14:1
-  Tageslimit ........................................................................ (kein Limit)
-Init-Snippet:
-  initFeedback({ projectKey: 'fbk_live_MHoE8S6QzLaeMWMYt4GWP4', endpoint: 'https://feedback.codebar.ch', locale: 'de_CH' })
+  Name ............................................................. Example Website
+  Public Key ....................................... fbk_live_92T7QQB6fj6Zb37jBGzrDI
+  Active ....................................................................... yes
+  Origins .................................................. https://www.example.com
+  IPs ............................................................. (no restriction)
+  Color ................................... #0A7C66 · text #FFFFFF · contrast 5.14:1
+  Daily limit ........................................................... (no limit)
 ```
 
-| Command | Zweck |
-|---|---|
-| `feedback:project:create {name} --origin=* [--ip=*] [--color=] [--limit=] [--allow-any-origin]` | Projekt anlegen, gibt Schlüssel und Snippet aus |
-| `feedback:project:list` | Alle Projekte mit Farbe, Freigaben, offen/erledigt |
-| `feedback:project:show {key}` | Details eines Projekts |
-| `feedback:project:update {key} [--name=] [--add-origin=*] [--remove-origin=*] [--add-ip=*] [--remove-ip=*] [--color=] [--limit=\|none] [--activate\|--deactivate]` | Projekt ändern |
-| `feedback:project:rotate-key {key}` | Öffentlichen Schlüssel erneuern |
-| `feedback:list [--project=] [--open] [--completed] [--limit=20]` | Neueste Feedbacks |
-| `feedback:show {id}` | Feedback mit Browserdaten, Konsole und Screenshot-Infos |
-| `feedback:export {id} [--path=]` | Schreibt `feedback-{id}.json` und den Screenshot |
-| `feedback:complete {id…}` · `feedback:reopen {id…}` | Erledigt setzen oder wieder öffnen |
-
-Alle Commands nehmen den Schlüssel oder die ID. `--json` liefert maschinenlesbare Ausgabe, `--by="Name"` hält im Activity-Log fest, wer etwas geändert hat. Exit-Codes: `0` ok, `1` nicht gefunden, `2` ungültige Eingabe.
-
-- **Origins:** `https://app.beispiel.ch` (genau diese), `https://*.beispiel.ch` (alle Subdomains, nicht die Domain selbst), `http://localhost:*` (jeder Port), `*` (jede, nur mit `--allow-any-origin`).
-- **IPs:** Adressen und CIDR, IPv4 und IPv6. Leer heisst keine Einschränkung. Origin **und** IP müssen passen.
-- **Farbe:** `black`, `white` oder Hex. Schrift und Icons werden automatisch Weiss oder Dunkelblau, je nach Kontrast. Mittlere Töne werden für Buttons angepasst, bis 4.5:1 erreicht sind. Weiss bekommt eine Trennlinie und einen dunklen Senden-Button.
-- **Activity-Log:** Änderungen an Projekten (inklusive Schlüsselrotation) sowie Erledigen und Wiedereröffnen landen in `activity_log` (`spatie/laravel-activitylog`), ohne Personendaten.
-
-## Widget
+**3. Add the widget to your website**
 
 ```bash
 npm install @codebar-ag/feedback-widget
@@ -128,107 +87,96 @@ npm install @codebar-ag/feedback-widget
 ```ts
 import { initFeedback } from '@codebar-ag/feedback-widget';
 
-const feedback = await initFeedback({
-  projectKey: 'fbk_live_MHoE8S6QzLaeMWMYt4GWP4',
-  endpoint: 'https://feedback.codebar.ch',
-  locale: 'de_CH',
+await initFeedback({
+  projectKey: 'fbk_live_92T7QQB6fj6Zb37jBGzrDI',
+  endpoint: 'https://feedback.example.com',
 });
 ```
 
-Rufe `initFeedback()` möglichst früh auf, Konsolenfehler werden erst ab dann erfasst. Ein zweiter Aufruf gibt dieselbe Instanz zurück.
+## Widget
 
-### Alle Optionen
+### Options
+
+Only `projectKey` and `endpoint` are required.
 
 ```ts
 const feedback = await initFeedback({
-  // Pflicht
-  projectKey: 'fbk_live_MHoE8S6QzLaeMWMYt4GWP4', // öffentlich, geschützt wird über Origin- und IP-Freigabe
-  endpoint: 'https://feedback.codebar.ch',
+  projectKey: 'fbk_live_92T7QQB6fj6Zb37jBGzrDI',
+  endpoint: 'https://feedback.example.com',
 
-  // de_CH | fr_CH | en_CH | it_CH (Standard: lang der Seite, Fallback en_CH)
-  locale: 'de_CH',
+  locale: 'en_CH', // de_CH | fr_CH | en_CH | it_CH, defaults to the page language
 
-  // Eingeloggte Person: ersetzt das E-Mail-Feld durch «Senden als». Wird nicht vom Server verifiziert.
-  identity: { id: '4711', name: 'Anna Muster', email: 'anna.muster@beispiel.ch' },
+  // Signed-in user: replaces the email field with "Sending as". Not verified by the server.
+  identity: { id: '4711', name: 'Anna Muster', email: 'anna@example.com' },
 
-  // Überschreibt die Projektfarbe: black | white | Hex
-  colors: { primary: '#0A7C66' },
-
-  // Darstellung
-  position: 'bottom-right', // oder 'bottom-left'
-  launcher: { style: 'icon', label: null }, // style 'text' zeigt das Label neben dem Icon
+  colors: { primary: '#0A7C66' }, // overrides the project color: black, white or hex
+  position: 'bottom-right', // or 'bottom-left'
+  launcher: { style: 'icon' }, // 'text' shows `label` next to the icon
   zIndex: 2147483000,
 
-  // Screenshot: mode 'optional' | 'required' | 'off'
-  screenshot: { mode: 'optional', quality: 0.82, maxPixels: 25_000_000 },
+  screenshot: { mode: 'optional', quality: 0.82 }, // mode: optional | required | off
 
-  // Diagnose
   diagnostics: {
-    console: true, // Konsole, Fehler, Rejections, Ressourcen, CSP-Verletzungen
-    network: true, // fehlgeschlagene fetch/XHR: Methode, URL ohne Query, Status, Dauer
-    levels: ['error', 'warn'], // zusätzlich möglich: 'info', 'log', 'debug'
-    maxEntries: 50,
-    redact: [/KD-\d{6}/], // eigene Regeln zusätzlich zu Tokens, Passwörtern, E-Mails, Kartennummern
+    console: true, // console errors, uncaught errors, failed resources, CSP violations
+    network: true, // failed fetch/XHR: method, URL without query, status, duration
+    levels: ['error', 'warn'], // also: info, log, debug
+    redact: [/CUST-\d{6}/], // extra rules, tokens, passwords, emails and card numbers are always redacted
   },
 
-  // Datenschutz im Screenshot, zusätzlich zu [data-feedback-mask] und [data-feedback-ignore]
-  mask: { selectors: ['.iban'], ignore: ['.chat-bubble'] },
-
-  // Eigene Daten, flaches Objekt, max. 8 KB
-  customData: { app_version: '2.3.1', tenant: 'acme' },
-
-  // Einzelne Texte überschreiben
-  messages: { de_CH: { submit: 'Abschicken' } },
-
-  // Entwurf im Browser (sessionStorage und IndexedDB, nur dieser Tab)
-  draft: { persist: true, ttlHours: 24 },
-
-  // CSP-Nonce, nur für Browser ohne adoptedStyleSheets
-  nonce: undefined,
+  mask: { selectors: ['.iban'], ignore: ['.chat-bubble'] }, // in addition to the data attributes below
+  customData: { appVersion: '2.3.1', tenant: 'acme' }, // flat object, max. 8 KB
+  messages: { en_CH: { submit: 'Send feedback' } }, // override single texts
+  draft: { persist: true, ttlHours: 24 }, // keep the draft in this tab
 });
 ```
 
-### Methoden und Events
+Call `initFeedback()` as early as possible: console errors are captured from that moment on. Calling it twice returns the same instance.
+
+### Methods and events
 
 ```ts
 feedback.open();
 feedback.close();
-feedback.showLauncher();
-feedback.hideLauncher();
-feedback.identify({ id: '4711', name: 'Anna Muster', email: 'anna.muster@beispiel.ch' }); // null entfernt sie
+feedback.identify({ id: '4711', name: 'Anna Muster', email: 'anna@example.com' }); // or null
 feedback.setLocale('fr_CH');
 feedback.setData({ plan: 'pro' });
-feedback.isOpen();
+feedback.hideLauncher();
+feedback.showLauncher();
 feedback.destroy({ clearDraft: true });
 
-const off = feedback.on('after_send', ({ id }) => console.log('gespeichert', id));
 feedback.on('before_send', (payload) => {
   payload.custom_data = { ...payload.custom_data, route: location.pathname };
-  // return false bricht das Senden ab
+  // return false to cancel
 });
-feedback.on('error', ({ code, status, retryAfter }) => console.warn(code, status, retryAfter));
-off();
+feedback.on('after_send', ({ id }) => console.log('Feedback stored', id));
+feedback.on('error', ({ code, status }) => console.warn(code, status));
 ```
 
-Events: `ready`, `open`, `close`, `before_send`, `after_send`, `error`. Fehlercodes im `error`-Event: `origin_not_allowed`, `project_not_found`, `rate_limited`, `validation_failed`, `payload_too_large`, `server_error`, `network_error`, `timeout`.
+Events: `ready`, `open`, `close`, `before_send`, `after_send`, `error`.
 
-### Script-Tag
-
-Ohne Build-Pipeline. Der Screenshot-Chunk wird relativ zur Datei nachgeladen. Den SRI-Hash findest du im [GitHub-Release](https://github.com/codebar-ag/feedback/releases) oder in `dist/sri.json`.
+### Privacy in screenshots
 
 ```html
-<script async src="https://unpkg.com/@codebar-ag/feedback-widget@1/dist/feedback.iife.js"
-        integrity="sha384-…" crossorigin="anonymous"></script>
+<div data-feedback-mask>Customer number 12345</div> <!-- rendered as a solid block -->
+<aside data-feedback-ignore>…</aside>              <!-- left out entirely -->
+```
+
+Password fields and `autocomplete="cc-*"` fields are always masked. Images from other hosts without CORS headers and cross-origin iframes render empty. If rendering fails, the feedback is sent without a screenshot.
+
+### Script tag
+
+No build step needed:
+
+```html
+<script src="https://unpkg.com/@codebar-ag/feedback-widget@1/dist/feedback.iife.js" crossorigin="anonymous"></script>
 <script>
-  window.addEventListener('load', function () {
-    CodebarFeedback.init({ projectKey: 'fbk_live_MHoE8S6QzLaeMWMYt4GWP4', endpoint: 'https://feedback.codebar.ch', locale: 'de_CH' });
-  });
+  CodebarFeedback.init({ projectKey: 'fbk_live_92T7QQB6fj6Zb37jBGzrDI', endpoint: 'https://feedback.example.com' });
 </script>
 ```
 
-Die API kann die Datei auch selbst ausliefern: `npm --prefix widget ci && npm --prefix widget run build && npm --prefix widget run publish:api` kopiert sie nach `public/widget/v1/`.
+Each [release](https://github.com/codebar-ag/feedback/releases) lists the SRI hash for `integrity="…"`.
 
-### Identität in Laravel
+### Laravel example
 
 ```blade
 <script type="module">
@@ -238,82 +186,93 @@ Die API kann die Datei auch selbst ausliefern: `npm --prefix widget ci && npm --
     projectKey: @js(config('services.feedback.key')),
     endpoint: @js(config('services.feedback.url')),
     locale: @js(str(app()->getLocale())->replace('-', '_')),
-    identity: @js(auth()->check() ? ['id' => (string) auth()->id(), 'name' => auth()->user()->name, 'email' => auth()->user()->email] : null),
+    identity: @js(auth()->user()?->only(['id', 'name', 'email'])),
   });
 </script>
 ```
 
-In SPAs (Inertia, React, Vue) rufst du nach Login oder Benutzerwechsel `feedback.identify(user)` auf.
+In single-page apps call `feedback.identify(user)` after sign-in.
 
-### Datenschutz im Screenshot und CSP
+### Content Security Policy
 
-```html
-<div data-feedback-mask>Kundennummer 12345</div> <!-- wird als deckender Block gerendert -->
-<aside data-feedback-ignore>…</aside>              <!-- fehlt im Screenshot -->
+Allow the API in `connect-src` and `blob: data:` in `img-src`. For the script tag also allow its host in `script-src`. Styles need nothing, the widget uses `adoptedStyleSheets`.
+
+## Managing projects and feedback
+
+```bash
+php artisan feedback:project:create "Name" --origin=https://app.example.com [--ip=10.0.0.0/8] [--color=black] [--limit=500]
+php artisan feedback:project:list
+php artisan feedback:project:show {key}
+php artisan feedback:project:update {key} --add-origin=https://staging.example.com --color=white --deactivate
+php artisan feedback:project:rotate-key {key}
+
+php artisan feedback:list --open
+php artisan feedback:show {id}
+php artisan feedback:export {id} --path=./export
+php artisan feedback:complete {id} {id}
+php artisan feedback:reopen {id}
 ```
 
-Passwortfelder und `autocomplete="cc-*"` sind immer verdeckt. Bilder anderer Hosts ohne CORS-Header und fremde iframes erscheinen leer. Schlägt das Rendern fehl, geht das Feedback ohne Bild raus.
+All commands accept `--json`. Changing commands accept `--by="Name"`, which is recorded in the activity log.
 
-CSP: `connect-src` auf die API, `img-src blob: data:`, beim Script-Tag `script-src` für den Host der Datei. Styles brauchen nichts (`adoptedStyleSheets`).
+- **Origins**: `https://app.example.com` exact, `https://*.example.com` all subdomains, `http://localhost:*` any port, `*` any origin (needs `--allow-any-origin`).
+- **IPs**: single addresses or CIDR ranges, IPv4 and IPv6. No IPs means no restriction. A request must match the origins **and** the IPs.
+- **Color**: `black`, `white` or a hex value. Text becomes white or dark blue, whichever has more contrast, and button tones are adjusted until they reach 4.5:1.
 
-## API-Referenz
+## Configuration
 
-| Endpoint | Zweck |
-|---|---|
-| `POST /v1/projects/{publicKey}/feedback` | Feedback senden, `multipart/form-data`, Header `Idempotency-Key: <uuid>` |
-| `OPTIONS /v1/projects/{publicKey}/feedback` | CORS-Preflight |
-| `GET /v1/projects/{publicKey}/config` | Projektfarbe für das Widget: `{"theme":{"primary":"#0A7C66"}}` |
-| `GET /up` | Health-Check |
+Set in `.env`, see [`config/feedback.php`](config/feedback.php):
 
-Pflichtfelder: `message` (3–5000 Zeichen), `email`, `locale`, `page_url`, `client` (JSON), `widget_version`, `elapsed_ms`. Optional: `identity`, `name` (nur mit `identity`), `page_title`, `referrer`, `console_log`, `network_log`, `annotations`, `custom_data`, `screenshot` (JPEG, PNG oder WebP bis 6 MB), `screenshot_error`, `submitted_from_url`, `website` (Honeypot, muss leer bleiben).
+| Variable | Default | |
+|---|---|---|
+| `FEEDBACK_ENDPOINT` | `APP_URL` | Public URL of the API, used in the init snippet |
+| `FEEDBACK_DEFAULT_COLOR` | `black` | Color for projects without one |
+| `FEEDBACK_LIMIT_PER_IP_PER_MINUTE` | `10` | `0` disables the limit |
+| `FEEDBACK_LIMIT_PER_PROJECT_PER_MINUTE` | `60` | `0` disables the limit |
+| `FEEDBACK_MIN_ELAPSED_MS` | `2000` | Faster submissions are dropped silently |
+| `TRUSTED_PROXIES` | | Load balancer or CDN addresses |
+| `CACHE_STORE` | `file` | Use `database` or `redis` with several instances |
+| `OH_DEAR_HEALTH_CHECK_*` | off | [Oh Dear](https://ohdear.app) application health |
 
-| Status | Bedeutung |
-|---|---|
-| `201` / `200` | gespeichert / bereits bekannt (gleicher `Idempotency-Key`), Body `{"id":"…","status":"received"}` |
-| `403` | `origin_not_allowed`: Origin oder IP nicht erlaubt |
-| `404` | `project_not_found`: unbekannt oder inaktiv |
-| `413` | `payload_too_large` |
-| `422` | `validation_failed` mit `fields` |
-| `429` | `rate_limited` mit `Retry-After` |
+`DB_READ_HOST` and `DB_WRITE_HOST` are supported for read replicas.
 
-Jedes neue Feedback löst `App\Events\FeedbackReceived` aus, der Einstiegspunkt für Benachrichtigungen (Mail, Slack, Ticketsystem).
+## Deployment
 
-## Sicherheit und Datenschutz
+- PHP 8.5 with `pdo_pgsql`, `pdo_mysql` or `pdo_sqlite`, `fileinfo` and `intl`. No queue worker needed.
+- Screenshots are up to 6 MB: set `post_max_size` and `upload_max_filesize` to at least 8 MB. On MySQL raise `max_allowed_packet` to 16 MB.
+- Behind a load balancer set `TRUSTED_PROXIES`, otherwise IP allowlists and rate limits see the proxy.
+- Run `php artisan schedule:run` every minute for the health checks.
+- `GET /up` is the health endpoint. Every other path, including `/`, returns 404 and is excluded from search engines.
 
-- Der Projektschlüssel ist öffentlich. Die Origin-Prüfung setzt der Browser durch, ein Skript ausserhalb des Browsers kann `Origin` fälschen. Interne Anwendungen schützt die IP-Freigabe, öffentliche Seiten Rate Limits, Mindestzeit, Honeypot und Grössenlimits.
-- Konsolenlogs werden im Browser redigiert (Tokens, JWTs, `password=`/`token=`/`secret=`, E-Mails, Kartennummern), URLs gehen ohne Query raus. Antworten enthalten nie interne Details.
-- Gespeichert werden E-Mail, Feedback, Screenshot, Browserdaten und die volle IP. **Erwähne das Widget in der Datenschutzerklärung der Website** (nDSG/DSGVO).
-- Schwachstellen bitte vertraulich melden, siehe [SECURITY.md](SECURITY.md).
+## HTTP API
 
-## Entwicklung
+| Method | Path | |
+|---|---|---|
+| `POST` | `/v1/projects/{key}/feedback` | Submit feedback (`multipart/form-data`, `Idempotency-Key` header) |
+| `GET` | `/v1/projects/{key}/config` | Project color for the widget |
+| `GET` | `/up` | Health check |
 
-Voraussetzungen zusätzlich: Node 26.
+Responses: `201` created, `200` duplicate `Idempotency-Key`, `403` origin or IP not allowed, `404` unknown project, `413` too large, `422` validation failed, `429` rate limited. Every stored feedback dispatches `App\Events\FeedbackReceived`, the place to hook in notifications.
+
+## Security and privacy
+
+The project key is public by design. The origin check is enforced by browsers, so use IP allowlists for internal apps and keep rate limits on for public sites. The API stores email, message, screenshot, browser data and the full IP address: mention the widget in your privacy policy. Please report vulnerabilities as described in [SECURITY.md](SECURITY.md).
+
+## Development
+
+Requires PHP 8.5, Composer and Node 26.
 
 ```bash
 composer install && npm --prefix widget ci
-npm --prefix widget exec -- playwright install --with-deps chromium firefox webkit
-
-composer check                    # Pint, PHPStan (Level 9), Pest
-npm --prefix widget run check     # ESLint, Prettier, Typen, Vitest, Build, Grössenbudget, publint, attw
-npm --prefix widget run e2e       # Playwright: Chromium, Firefox, WebKit, Mobile
-npm --prefix widget run e2e:full  # Vollstack: Laravel + gebautes Widget
-npm --prefix widget run dev       # Testseiten mit Mock-API: http://localhost:4173/fixtures/demo.html
+composer check                    # Pint, PHPStan, Pest
+npm --prefix widget run check     # lint, types, Vitest, build, size budget
+npm --prefix widget run e2e       # Playwright: Chromium, Firefox, WebKit, mobile
+npm --prefix widget run e2e:full  # API and widget together
+npm --prefix widget run dev       # playground with a mock API on http://localhost:4173/fixtures/index.html
 ```
 
-Die Backend-Tests laufen standardmässig mit SQLite, in CI zusätzlich gegen MySQL und PostgreSQL. Ein anderes Ziel setzt du über `DB_CONNECTION`, `DB_HOST` usw. `npm --prefix widget run screenshots` erzeugt die Bilder in diesem README neu.
+Releases are published from a `v*` tag through GitHub Actions with npm trusted publishing. See the [changelog](CHANGELOG.md) for changes.
 
-## Release
+## License
 
-Das Widget wird bei einem Tag `v*` aus GitHub Actions per [Trusted Publishing](https://docs.npmjs.com/trusted-publishers) veröffentlicht, ohne Token und mit Provenance. Einmalig: `@codebar-ag/feedback-widget` einmal von Hand veröffentlichen (`npm --prefix widget publish --access public`), danach in den npm-Paketeinstellungen GitHub Actions mit `codebar-ag/feedback` und `release.yml` als Trusted Publisher eintragen. Trusted Publishing und Provenance setzen ein öffentliches Repository voraus.
-
-```bash
-npm --prefix widget version 1.1.0 --no-git-tag-version
-git commit -am "chore: release v1.1.0" && git tag v1.1.0
-git push --follow-tags
-```
-
-Der Workflow prüft, ob Tag und Version übereinstimmen, führt alle Checks aus, veröffentlicht auf npm und erstellt das GitHub-Release mit Changelog und SRI-Hash. Änderungen stehen im [CHANGELOG](CHANGELOG.md).
-
-## Lizenz
-
-MIT, siehe [LICENSE](LICENSE). Entwickelt von [codebar Solutions AG](https://www.codebar.ch).
+MIT. See [LICENSE](LICENSE). Made by [codebar Solutions AG](https://www.codebar.ch).

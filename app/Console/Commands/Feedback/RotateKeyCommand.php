@@ -33,9 +33,9 @@ final class RotateKeyCommand extends Command
             return $this->printJson(['id' => $project->id, 'old_public_key' => $old, 'public_key' => $new, 'snippet' => $this->snippet($project)]);
         }
 
-        $this->components->info('Schlüssel erneuert. Der alte Schlüssel ist ab sofort ungültig.');
+        $this->components->info('Key rotated. The old key no longer works.');
         $this->components->twoColumnDetail('Public Key', $new);
-        $this->line('Init-Snippet:');
+        $this->line('Init snippet:');
         $this->line('  '.$this->snippet($project));
 
         return self::SUCCESS;

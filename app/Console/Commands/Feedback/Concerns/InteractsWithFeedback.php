@@ -140,10 +140,10 @@ trait InteractsWithFeedback
 
     protected function colorLine(ProjectColor $color): string
     {
-        $line = "{$color->primary} · Schrift {$color->onPrimary} · Kontrast {$color->formattedContrast()}";
+        $line = "{$color->primary} · text {$color->onPrimary} · contrast {$color->formattedContrast()}";
 
         if ($color->strong !== $color->primary) {
-            $line .= " · Buttons {$color->strong} ({$color->onStrong}, ".number_format($color->strongContrast, 2, '.', '').':1)';
+            $line .= " · buttons {$color->strong} ({$color->onStrong}, ".number_format($color->strongContrast, 2, '.', '').':1)';
         }
 
         return $line;
@@ -186,12 +186,12 @@ trait InteractsWithFeedback
     {
         $this->components->twoColumnDetail('Name', $project->name);
         $this->components->twoColumnDetail('Public Key', $project->public_key);
-        $this->components->twoColumnDetail('Aktiv', $project->is_active ? 'ja' : 'nein');
+        $this->components->twoColumnDetail('Active', $project->is_active ? 'yes' : 'no');
         $this->components->twoColumnDetail('Origins', implode(', ', $project->allowed_origins));
-        $this->components->twoColumnDetail('IPs', $project->allowed_ips === [] ? '(keine Einschränkung)' : implode(', ', $project->allowed_ips));
-        $this->components->twoColumnDetail('Farbe', $this->colorLine($project->color()));
-        $this->components->twoColumnDetail('Tageslimit', $project->daily_limit === null ? '(kein Limit)' : (string) $project->daily_limit);
-        $this->line('Init-Snippet:');
+        $this->components->twoColumnDetail('IPs', $project->allowed_ips === [] ? '(no restriction)' : implode(', ', $project->allowed_ips));
+        $this->components->twoColumnDetail('Color', $this->colorLine($project->color()));
+        $this->components->twoColumnDetail('Daily limit', $project->daily_limit === null ? '(no limit)' : (string) $project->daily_limit);
+        $this->line('Init snippet:');
         $this->line('  '.$this->snippet($project));
     }
 

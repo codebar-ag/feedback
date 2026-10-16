@@ -43,7 +43,7 @@ final class ExportFeedbackCommand extends Command
             $this->components->twoColumnDetail('Screenshot', $image);
         }
 
-        $this->components->info('Export abgeschlossen.');
+        $this->components->info('Export finished.');
 
         return self::SUCCESS;
     }

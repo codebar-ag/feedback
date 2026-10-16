@@ -31,25 +31,25 @@ final class ShowFeedbackCommand extends Command
         }
 
         $this->components->twoColumnDetail('ID', $entry->id);
-        $this->components->twoColumnDetail('Projekt', $entry->project->name);
-        $this->components->twoColumnDetail('Erstellt', $entry->created_at->toDateTimeString());
-        $this->components->twoColumnDetail('Status', $entry->completed_at === null ? 'offen' : 'erledigt ('.$entry->completed_at->toDateTimeString().')');
-        $this->components->twoColumnDetail('Von', trim(($entry->name ?? '').' <'.$entry->email.'>'));
-        $this->components->twoColumnDetail('Sprache', $entry->locale);
-        $this->components->twoColumnDetail('Seite', $entry->page_url);
+        $this->components->twoColumnDetail('Project', $entry->project->name);
+        $this->components->twoColumnDetail('Created', $entry->created_at->toDateTimeString());
+        $this->components->twoColumnDetail('Status', $entry->completed_at === null ? 'open' : 'completed ('.$entry->completed_at->toDateTimeString().')');
+        $this->components->twoColumnDetail('From', trim(($entry->name ?? '').' <'.$entry->email.'>'));
+        $this->components->twoColumnDetail('Locale', $entry->locale);
+        $this->components->twoColumnDetail('Page', $entry->page_url);
 
         if ($entry->submitted_from_url !== null && $entry->submitted_from_url !== $entry->page_url) {
-            $this->components->twoColumnDetail('Gesendet von', $entry->submitted_from_url);
+            $this->components->twoColumnDetail('Sent from', $entry->submitted_from_url);
         }
 
         $this->components->twoColumnDetail('System', trim(($entry->os_name ?? '?').' '.($entry->os_version ?? '')));
         $this->components->twoColumnDetail('Browser', trim(($entry->browser_name ?? '?').' '.($entry->browser_version ?? '')).' ('.$entry->version_precision.')');
-        $this->components->twoColumnDetail('Browserfenster', $entry->viewport_w.' × '.$entry->viewport_h);
-        $this->components->twoColumnDetail('Auflösung', $entry->screen_w.' × '.$entry->screen_h.' @'.$entry->dpr);
+        $this->components->twoColumnDetail('Viewport', $entry->viewport_w.' × '.$entry->viewport_h);
+        $this->components->twoColumnDetail('Screen', $entry->screen_w.' × '.$entry->screen_h.' @'.$entry->dpr);
         $this->components->twoColumnDetail('IP', $entry->ip ?? '–');
         $shot = self::screenshotMeta($entry);
-        $this->components->twoColumnDetail('Screenshot', $shot === null ? ($entry->screenshot_error ?? 'keiner') : $shot['width'].' × '.$shot['height'].', '.$shot['bytes'].' Bytes');
-        $this->components->twoColumnDetail('Konsole', count($entry->console_log ?? []).' Einträge');
+        $this->components->twoColumnDetail('Screenshot', $shot === null ? ($entry->screenshot_error ?? 'none') : $shot['width'].' × '.$shot['height'].', '.$shot['bytes'].' Bytes');
+        $this->components->twoColumnDetail('Console', count($entry->console_log ?? []).' entries');
         $this->newLine();
         $this->line($entry->message);
 

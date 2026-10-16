@@ -34,7 +34,7 @@ final class ReopenFeedbackCommand extends Command
                 $entry->save();
             }
 
-            $this->components->twoColumnDetail($entry->id, 'offen');
+            $this->components->twoColumnDetail($entry->id, 'open');
         }
 
         return $status;

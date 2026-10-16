@@ -31,17 +31,17 @@ final class ListProjectsCommand extends Command
         }
 
         if ($projects->isEmpty()) {
-            $this->components->info('Keine Projekte vorhanden.');
+            $this->components->info('No projects yet.');
 
             return self::SUCCESS;
         }
 
         $this->table(
-            ['Name', 'Schlüssel', 'Aktiv', 'Farbe', 'Origins', 'IPs', 'Offen', 'Erledigt'],
+            ['Name', 'Key', 'Active', 'Color', 'Origins', 'IPs', 'Open', 'Completed'],
             $projects->map(fn (FeedbackProject $p): array => [
                 $p->name,
                 $p->public_key,
-                $p->is_active ? 'ja' : 'nein',
+                $p->is_active ? 'yes' : 'no',
                 $p->color()->primary,
                 implode(', ', $p->allowed_origins),
                 $p->allowed_ips === [] ? '–' : implode(', ', $p->allowed_ips),
