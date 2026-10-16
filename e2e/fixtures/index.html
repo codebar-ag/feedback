@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="de-CH">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vollstack-Testseite</title>
+    <style>
+      body {
+        margin: 0;
+        font: 16px/1.5 system-ui;
+        background: #eef1f5;
+      }
+      main {
+        padding: 40px;
+      }
+      section {
+        background: #fff;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        min-height: 600px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Vollstack-Testseite</h1>
+      <section>
+        <p>Inhalt.</p>
+        <label>Passwort <input type="password" value="geheim" /></label>
+      </section>
+      <section><p>Mehr Inhalt.</p></section>
+    </main>
+    <script type="module">
+      const q = new URLSearchParams(location.search);
+      const { initFeedback } = await import("/dist/feedback.js");
+      window.feedbackErrors = [];
+      window.feedback = await initFeedback({
+        projectKey: q.get("key"),
+        endpoint: q.get("api"),
+        locale: "de_CH",
+      });
+      window.feedback.on("error", (e) => window.feedbackErrors.push(e));
+      // Logged after init(): capture starts with init (concept 4.7).
+      console.error("E2E console error with token=supersecret123");
+      document.documentElement.dataset.feedbackReady = "1";
+    </script>
+  </body>
+</html>

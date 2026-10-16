@@ -39,8 +39,8 @@
     "dev": "vite --config vite.dev.config.ts",
     "build": "node scripts/build.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "lint": "eslint . && prettier --check .",
-    "format": "prettier --write . && eslint . --fix",
+    "lint": "eslint . && prettier --check . ../e2e",
+    "format": "prettier --write . ../e2e && eslint . --fix",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "size": "size-limit",
@@ -48,7 +48,7 @@
     "attw": "attw --pack . --profile esm-only",
     "check": "npm run lint && npm run typecheck && npm run test && npm run build && npm run size && npm run publint && npm run attw",
     "e2e": "playwright test -c playwright.config.ts",
-    "e2e:full": "playwright test -c ../e2e/playwright.config.ts",
+    "e2e:full": "NODE_PATH=$PWD/node_modules playwright test -c ../e2e/playwright.config.ts",
     "publish:api": "node scripts/publish-api.mjs"
   },
   "devDependencies": {

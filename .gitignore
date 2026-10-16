@@ -25,3 +25,9 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Full stack E2E artefacts
+/e2e/.tmp
+/e2e/test-results
+/e2e/playwright-report
+/public/widget
