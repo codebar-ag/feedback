@@ -1,0 +1,44 @@
+name: Widget
+
+on:
+  push:
+    branches: [main]
+    paths: ['widget/**', '.github/workflows/widget.yml']
+  pull_request:
+    paths: ['widget/**', '.github/workflows/widget.yml']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: widget
+
+jobs:
+  widget:
+    name: Lint, types, Vitest, build, budget
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: widget/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:coverage
+      - run: npm run build
+      - run: npm run size
+      - run: npm run publint
+      - run: npm run attw

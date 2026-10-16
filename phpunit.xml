@@ -5,31 +5,36 @@
          colors="true"
 >
     <testsuites>
-        <testsuite name="Core">
-            <directory>tests/Core</directory>
-        </testsuite>
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
         </testsuite>
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
-        <testsuite name="Helper">
-            <directory>tests/Helper</directory>
-        </testsuite>
-        <testsuite name="Browser">
-            <directory>tests/Browser</directory>
+        <testsuite name="Arch">
+            <directory>tests/Arch</directory>
         </testsuite>
     </testsuites>
     <source>
         <include>
-            <directory suffix=".php">./app</directory>
+            <directory>app</directory>
         </include>
     </source>
     <php>
-        <env name="APP_KEY" value="base64:F+mHMDBbavrsp/I3WYA5lDSwDJJI/0wQG4eM3csq/lo="/>
         <env name="APP_ENV" value="testing"/>
-        <env name="DB_DATABASE" value="laravel_test"/>
-        <env name="NOVA_ASSETS_TEST" value="https://example.com/nova-coverage-asset.js"/>
+        <env name="APP_KEY" value="base64:2fl+Ktvkfl+Fuz4Qp/A75G2RTiWVA/ZoKZvp6fiiM10="/>
+        <env name="APP_URL" value="http://localhost"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="CACHE_STORE" value="array"/>
+        <env name="DB_CONNECTION" value="sqlite"/>
+        <env name="DB_DATABASE" value=":memory:"/>
+        <env name="LOG_CHANNEL" value="null"/>
+        <env name="FEEDBACK_GEO" value="none"/>
+        <env name="FEEDBACK_IP_MODE" value="full"/>
+        <env name="FEEDBACK_ENDPOINT" value="https://feedback.example.test"/>
+        <env name="FEEDBACK_LIMIT_PER_IP_PER_MINUTE" value=""/>
+        <env name="FEEDBACK_LIMIT_PER_PROJECT_PER_MINUTE" value=""/>
+        <env name="FEEDBACK_MIN_ELAPSED_MS" value=""/>
+        <env name="TRUSTED_PROXIES" value=""/>
     </php>
 </phpunit>
