@@ -41,6 +41,18 @@ describe('API client', () => {
     );
   });
 
+  it('passes the share link through, only http(s)', async () => {
+    const link = 'https://api.example/v1/feedback/01J?expires=1&signature=abc';
+    const ok = await sendFeedback(URL_, 'k', payload, null, {
+      fetch: vi.fn(async () => json(201, { id: '01J', status: 'received', url: link })),
+    });
+    expect(ok).toEqual({ ok: true, id: '01J', status: 201, url: link });
+    for (const url of ['javascript:alert(1)', 42, null, '//evil.example']) {
+      const result = await sendFeedback(URL_, 'k', payload, null, { fetch: vi.fn(async () => json(201, { id: '01J', url })) });
+      expect(result).toEqual({ ok: true, id: '01J', status: 201 });
+    }
+  });
+
   it('retries once after a network error with the same key', async () => {
     const fetch = vi
       .fn()

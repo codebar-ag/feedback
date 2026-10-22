@@ -11,14 +11,17 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * The API is only for the widget (CORS requests) and for monitoring. Typing
- * a URL into a browser is a navigation and gets an empty 403.
+ * a URL into a browser is a navigation and gets an empty 403. The only
+ * exception are valid signed links from feedback:link.
  */
 final class BlockBrowserNavigation
 {
     /** @param Closure(Request): Response $next */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->headers->get('Sec-Fetch-Mode') === 'navigate' || $request->headers->get('Sec-Fetch-Dest') === 'document') {
+        $navigation = $request->headers->get('Sec-Fetch-Mode') === 'navigate' || $request->headers->get('Sec-Fetch-Dest') === 'document';
+
+        if ($navigation && ! $request->hasValidSignature()) {
             return new IlluminateResponse('', 403);
         }
 

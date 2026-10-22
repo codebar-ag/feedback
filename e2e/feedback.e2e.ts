@@ -80,14 +80,18 @@ test('feedback with screenshot, console error and browser data lands in the data
   expect(artisanJson<Entry>('feedback:show', entry.id).completed_at).not.toBeNull();
 });
 
-test('a foreign origin is rejected with 403 and the error page', async ({ page, request }) => {
+async function visitOnly(page: Page, key: string, origin = WEB): Promise<void> {
+  await page.goto(`${origin}/index.html?key=${key}&api=${encodeURIComponent(API)}`);
+  await expect(page.locator('html')).toHaveAttribute('data-feedback-ready', '1');
+}
+
+test('a foreign origin never shows the widget and the API rejects it with 403', async ({ page, request }) => {
   const before = entries().length;
-  await open(page, keys().open, `http://127.0.0.1:${WEB_PORT}`);
-  await write(page, 'Fremde Origin');
-  await shadow(page, 'button[type=submit]').click();
-  await expect(shadow(page, '.st.err')).toBeVisible({ timeout: 15_000 });
-  await expect(shadow(page, '.st.err')).toContainText('Senden fehlgeschlagen');
-  expect(entries()).toHaveLength(before);
+  const warnings: string[] = [];
+  page.on('console', (m) => m.type() === 'warning' && warnings.push(m.text()));
+  await visitOnly(page, keys().open, `http://127.0.0.1:${WEB_PORT}`);
+  await expect(page.locator('codebar-feedback')).toHaveCount(0);
+  expect(warnings.some((w) => w.includes('not allowed for the project'))).toBe(true);
 
   const preflight = await request.fetch(`${API}/v1/projects/${keys().open}/feedback`, {
     method: 'OPTIONS',
@@ -109,17 +113,29 @@ test('a foreign origin is rejected with 403 and the error page', async ({ page, 
     multipart: { message: 'x' },
   });
   expect(forged.status()).toBe(403);
+  expect(entries()).toHaveLength(before);
 });
 
-test('an IP outside the allowed range is rejected with 403', async ({ page }) => {
+test('an IP outside the allowed range never shows the widget and is rejected with 403', async ({ page, request }) => {
   const before = entries().length;
-  await open(page, keys().ipRestricted);
-  await write(page, 'IP gesperrt');
-  await shadow(page, 'button[type=submit]').click();
-  await expect(shadow(page, '.st.err')).toBeVisible();
-  expect(await page.evaluate(() => (window as unknown as { feedbackErrors: unknown[] }).feedbackErrors)).toEqual([
-    { code: 'origin_not_allowed', status: 403 },
-  ]);
+  await visitOnly(page, keys().ipRestricted);
+  await expect(page.locator('codebar-feedback')).toHaveCount(0);
+
+  const config = await request.get(`${API}/v1/projects/${keys().ipRestricted}/config`, { headers: { Origin: WEB } });
+  expect(config.status()).toBe(403);
+  const sent = await request.post(`${API}/v1/projects/${keys().ipRestricted}/feedback`, {
+    headers: { Origin: WEB, 'Idempotency-Key': crypto.randomUUID() },
+    multipart: {
+      message: 'IP gesperrt',
+      email: 'e2e@beispiel.ch',
+      locale: 'de_CH',
+      page_url: `${WEB}/index.html`,
+      widget_version: '1.0.0',
+      elapsed_ms: '5000',
+    },
+  });
+  expect(sent.status()).toBe(403);
+  expect(await sent.json()).toEqual({ error: { code: 'origin_not_allowed' } });
   expect(entries()).toHaveLength(before);
 });
 
@@ -152,4 +168,52 @@ test('a repeated request with the same Idempotency-Key creates no duplicate', as
   expect(second.status()).toBe(200);
   expect((await second.json()).id).toBe((await first.json()).id);
   expect(entries().filter((e) => e.message === message)).toHaveLength(1);
+});
+
+test('the share link on the thank you screen and the team link open the feedback page', async ({ page, context, browserName }) => {
+  const message = `Link ${browserName} ${Date.now()}`;
+  await open(page, keys().open);
+  await write(page, message);
+  await shadow(page, '.tr button').first().click();
+  await expect(shadow(page, '.tb')).toBeVisible();
+  await shadow(page, '.tb [data-action=done]').click();
+  await shadow(page, 'button[type=submit]').click();
+  await expect(shadow(page, '.st.ok')).toBeVisible();
+
+  // Sender: read-only link with copy button.
+  const senderUrl = await shadow(page, '.st.ok .sh input').inputValue();
+  expect(senderUrl).toMatch(new RegExp(`^${API}/v1/feedback/[0-9a-z]{26}\\?expires=\\d+&signature=[0-9a-f]{64}$`));
+  await shadow(page, '.st.ok button.cp').click();
+  await expect(shadow(page, '.st.ok button.cp')).toHaveText('Kopiert');
+
+  const viewer = await context.newPage();
+  await viewer.goto(senderUrl);
+  await expect(viewer.locator('h1')).toHaveText('E2E Website');
+  await expect(viewer.locator('.message')).toHaveText(message);
+  await expect(viewer.locator('.status')).toHaveText('open');
+  await expect(viewer.locator('form.state')).toHaveCount(0);
+  const img = viewer.locator('.shot img');
+  await expect(img).toBeVisible();
+  expect(await img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 500)).toBe(true);
+  const [download] = await Promise.all([viewer.waitForEvent('download'), viewer.getByText(/^Download/).click()]);
+  expect(download.suggestedFilename()).toMatch(/^feedback-[0-9a-z]{26}\.jpg$/);
+
+  // Team: feedback:link can complete and reopen.
+  const id = senderUrl.split('/v1/feedback/')[1]!.split('?')[0]!;
+  const team = artisanJson<{ url: string; manage: boolean }>('feedback:link', id, '--by=E2E Team');
+  expect(team.manage).toBe(true);
+  await viewer.goto(team.url);
+  await viewer.getByRole('button', { name: 'Mark as completed' }).click();
+  await expect(viewer.locator('.status')).toContainText('completed');
+  expect(artisanJson<Entry>('feedback:show', id).completed_at).not.toBeNull();
+  await viewer.getByRole('button', { name: 'Reopen' }).click();
+  await expect(viewer.locator('.status')).toHaveText('open');
+  expect(artisanJson<Entry>('feedback:show', id).completed_at).toBeNull();
+
+  // Tampered links reveal nothing. A request, not a navigation: Firefox never fires "load" for an empty 403.
+  const forged = await viewer.request.get(senderUrl.replace(/signature=./, 'signature=0'), {
+    headers: { 'Sec-Fetch-Mode': 'navigate', 'Sec-Fetch-Dest': 'document' },
+  });
+  expect(forged.status()).toBe(403);
+  expect(await forged.text()).toBe('');
 });

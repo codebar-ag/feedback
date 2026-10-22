@@ -82,7 +82,8 @@ describe('widget', () => {
     await start({ colors: { primary: 'white' } });
     expect($('.r').style.getPropertyValue('--fb-primary')).toBe('#FFFFFF');
     expect($('.r').style.getPropertyValue('--fb-strong')).toBe('#101F3C');
-    expect(fetchMock).not.toHaveBeenCalled();
+    // The config is still requested: it also checks whether the page is allowed.
+    expect(fetchMock).toHaveBeenCalledOnce();
   });
 
   it('opens and closes, header has only icon and X', async () => {
@@ -357,6 +358,34 @@ describe('widget', () => {
     expect(document.querySelector('codebar-feedback')).toBeNull();
     expect(console.error).toBe(before);
     expect(sessionStorage.getItem(`cbf:${KEY}:draft`)).toBeNull();
+  });
+
+  it('stays hidden and removes itself when the API refuses the page', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    fetchMock.mockImplementation(async () => json(403, { error: { code: 'origin_not_allowed' } }));
+    await start();
+    instance = null;
+    expect(document.querySelector('codebar-feedback')).toBeNull();
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('not allowed'));
+  });
+
+  it('keeps the host hidden until the API has answered', async () => {
+    let answer!: (r: Response) => void;
+    fetchMock.mockImplementation(() => new Promise<Response>((r) => (answer = r)));
+    const ready = start();
+    await flush();
+    expect(document.querySelector<HTMLElement>('codebar-feedback')!.style.display).toBe('none');
+    answer(json(200, { theme: { primary: '#0A7C66' } }));
+    await ready;
+    expect(document.querySelector<HTMLElement>('codebar-feedback')!.style.display).toBe('');
+    expect(visible('.l')).toBe(true);
+  });
+
+  it('still shows when the API is not reachable', async () => {
+    fetchMock.mockImplementation(async () => Promise.reject(new TypeError('offline')));
+    await start();
+    expect(document.querySelector<HTMLElement>('codebar-feedback')!.style.display).toBe('');
+    expect(visible('.l')).toBe(true);
   });
 
   it('shows and hides the launcher', async () => {

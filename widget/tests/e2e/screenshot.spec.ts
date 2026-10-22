@@ -42,6 +42,26 @@ test('camera hides the panel, shows the annotation mode, Done brings it back', a
   await expect(x.host).not.toContainText('Markierungen');
 });
 
+test('the close button in the corner cancels like Escape', async ({ page }) => {
+  const x = w(page);
+  const close = x.host.locator('.xb');
+  await takeShot(page);
+  await expect(close).toBeVisible();
+  await expect(close).toHaveAttribute('aria-label', 'Abbrechen');
+  const b = await box(close);
+  const vp = page.viewportSize()!;
+  if (vp.width > 640) expect(b.y).toBeCloseTo(20, 0);
+  else expect(b.y + b.height).toBeCloseTo(vp.height - 20, 0);
+  expect(b.x + b.width).toBeCloseTo(vp.width - 20, 0);
+  await drag(page, [100, 150], [300, 260]);
+  await close.click();
+  await expectState(page, 'form');
+  await expect(x.panel).toBeVisible();
+  // A fresh screenshot is dropped, as with Escape.
+  await expect(x.thumb).toBeHidden();
+  await expect(close).toBeHidden();
+});
+
 test('rectangle, marker, undo, clear all, Ctrl/Cmd+Z and minimum sizes', async ({ page }) => {
   const x = w(page);
   await takeShot(page);
@@ -173,6 +193,7 @@ test('sends the full page with masks and burnt-in marks', async ({ page }, info)
         mask: px(points.x, points.y),
         ignored: px(points.ix, points.iy),
         mark: px(100, 650),
+        header: px(5, 5),
       };
     },
     { url: `/s/${id}/__shot/0`, points: masked },
@@ -181,11 +202,50 @@ test('sends the full page with masks and burnt-in marks', async ({ page }, info)
   expect(pixels.w).toBe(pageSize.w);
   expect(pixels.h).toBe(pageSize.h);
   const near = (a: number[], b: number[], d = 40) => a.every((v, i) => Math.abs(v - (b[i] as number)) <= d);
+  // The white header, not the body color that a blank render falls back to.
+  expect(near(pixels.header, [255, 255, 255], 6), `header ${pixels.header}`).toBe(true);
   expect(near(pixels.mask, [0xc9, 0xd1, 0xdc]), `mask ${pixels.mask}`).toBe(true);
   expect(near(pixels.ignored, [0, 255, 0], 80), `ignored ${pixels.ignored}`).toBe(false);
   expect(near(pixels.mark, [0xe0, 0x2b, 0x20], 60), `mark ${pixels.mark}`).toBe(true);
   const annotations = JSON.parse(req!.fields.annotations!);
   expect(annotations[0]).toEqual({ type: 'rect', x: 100, y: 650, w: 200, h: 110 });
+});
+
+test('framework attributes like :class or x-on:click do not blank the screenshot', async ({ page }, info) => {
+  const id = sid(info);
+  const x = w(page);
+  await page.evaluate(() => {
+    const el = document.createElement('div');
+    el.id = 'alpine';
+    el.style.cssText = 'width:120px;height:120px;background:rgb(0,0,255)';
+    for (const name of [':class', 'x-on:click', 'x-bind:title', '@click']) el.setAttribute(name, 'x');
+    const tpl = document.createElement('template');
+    tpl.innerHTML = '<div :role="a" x-on:toast-close="b"></div>';
+    document.getElementById('intro')!.append(el, tpl);
+  });
+  await fill(page, 'a@b.ch', 'Alpine Seite');
+  await takeShot(page);
+  await x.done.click();
+  await x.submit.click();
+  await expect(x.success).toBeVisible();
+
+  // Position independent: browsers lay out the clone slightly differently. A blank capture has no blue at all.
+  const blue = await page.evaluate(async (url) => {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    const c = document.createElement('canvas');
+    c.width = img.naturalWidth;
+    c.height = img.naturalHeight;
+    const ctx = c.getContext('2d')!;
+    ctx.drawImage(img, 0, 0);
+    const d = ctx.getImageData(0, 0, c.width, c.height).data;
+    let count = 0;
+    for (let i = 0; i < d.length; i += 4) if (d[i]! < 80 && d[i + 1]! < 80 && d[i + 2]! > 140) count++;
+    return count;
+  }, `/s/${id}/__shot/0`);
+  // The block is 120 × 120 = 14400 px.
+  expect(blue, `blue pixels ${blue}`).toBeGreaterThan(10_000);
 });
 
 test('a failed screenshot keeps the camera usable and sends without image', async ({ page }, info) => {

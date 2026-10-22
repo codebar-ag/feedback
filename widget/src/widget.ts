@@ -5,7 +5,7 @@ import type { Tool } from './annotate/tools.js';
 import { sendFeedback } from './api/client.js';
 import { composeShot } from './capture/compose.js';
 import { loadCapture, preloadCapture } from './capture/load.js';
-import { resolveOptions, loadProjectColor, type ResolvedOptions } from './config.js';
+import { resolveOptions, loadProjectConfig, type ResolvedOptions } from './config.js';
 import { RingBuffer } from './diagnostics/buffer.js';
 import { captureConsole } from './diagnostics/console.js';
 import { collectClient, prefetchHints } from './diagnostics/meta.js';
@@ -94,6 +94,7 @@ export class Widget implements FeedbackInstance {
   private openedAt = Date.now();
   private formHeight = 0;
   private launcherVisible = true;
+  private checked = false;
   private history: History | null = null;
   private layer: AnnotationLayer | null = null;
   private tool: Tool = 'rect';
@@ -102,6 +103,8 @@ export class Widget implements FeedbackInstance {
   private quiet = false;
   private saveTimer: ReturnType<typeof setTimeout> | undefined;
   private closeTimer: ReturnType<typeof setTimeout> | undefined;
+  /** Signed link to the last sent feedback, shown on the success page. */
+  private shareUrl: string | null = null;
   private destroyed = false;
 
   constructor(
@@ -152,6 +155,7 @@ export class Widget implements FeedbackInstance {
         this.marksChanged();
       },
       done: () => this.finishAnnotating(),
+      cancel: () => this.cancelAnnotating(),
     });
     this.capturing = h('div', { class: 'cap', hidden: true }, h('span', { class: 'sp', 'aria-hidden': 'true' }));
     this.panel = createPanel(this.header.el, h('div', { class: 'bd' }, this.form.el, this.success.el, this.failure.el));
@@ -162,12 +166,21 @@ export class Widget implements FeedbackInstance {
     this.render();
   }
 
-  /** Restores the draft, loads the project color and emits "ready". */
+  /** Checks the page against the API, restores the draft, applies the project color and emits "ready". */
   async start(): Promise<this> {
     void prefetchHints();
-    const colorLoad = this.primary ? null : loadProjectColor(this.o.endpoint, this.o.projectKey, nativeFetch);
+    const configLoad = loadProjectConfig(this.o.endpoint, this.o.projectKey, nativeFetch);
     const loaded = await this.draft.load();
+    const config = await configLoad;
     if (this.destroyed) return this;
+    if (!config.allowed) {
+      // The API would refuse every feedback from this page, so the widget never shows.
+      console.warn('[codebar feedback] this page is not allowed for the project (origin or IP), the widget stays hidden');
+      this.destroy();
+      return this;
+    }
+    this.primary ??= parseColor(config.primary);
+    this.checked = true;
     if (loaded) {
       const d = loaded.draft;
       this.form.email.value = d.email ?? '';
@@ -181,13 +194,6 @@ export class Widget implements FeedbackInstance {
       }
     }
     this.render();
-    if (colorLoad) {
-      const color = parseColor(await colorLoad);
-      if (color && !this.destroyed) {
-        this.primary = color;
-        this.render();
-      }
-    }
     this.events.emit('ready');
     return this;
   }
@@ -311,7 +317,8 @@ export class Widget implements FeedbackInstance {
       this.live.announce(t('sending'));
     } else if (next === 'success') {
       this.success.button.focus({ preventScroll: true });
-      this.closeTimer = setTimeout(() => this.go('CLOSE'), SUCCESS_CLOSE_MS);
+      // Stays open while a link is shown, so that it can be copied.
+      if (this.shareUrl === null) this.closeTimer = setTimeout(() => this.go('CLOSE'), SUCCESS_CLOSE_MS);
     } else if (next === 'error') {
       this.failure.button.focus({ preventScroll: true });
     }
@@ -329,6 +336,8 @@ export class Widget implements FeedbackInstance {
     const open = state !== 'closed';
     const away = state === 'capturing' || state === 'annotating';
 
+    // Hidden until the API has accepted this page.
+    this.hostUi.host.style.display = this.checked ? '' : 'none';
     root.lang = bcp47(this.locale);
     root.classList.toggle('open', open);
     root.classList.toggle('away', away);
@@ -626,8 +635,10 @@ export class Widget implements FeedbackInstance {
       this.errors = {};
       this.validated = false;
       this.idempotencyKey = uuid();
+      this.shareUrl = result.url ?? null;
+      this.success.setLink(this.shareUrl);
       this.go('SENT');
-      this.events.emit('after_send', { id: result.id });
+      this.events.emit('after_send', { id: result.id, ...(result.url ? { url: result.url } : {}) });
       return;
     }
 
