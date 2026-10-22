@@ -42,6 +42,26 @@ test('camera hides the panel, shows the annotation mode, Done brings it back', a
   await expect(x.host).not.toContainText('Markierungen');
 });
 
+test('the close button in the corner cancels like Escape', async ({ page }) => {
+  const x = w(page);
+  const close = x.host.locator('.xb');
+  await takeShot(page);
+  await expect(close).toBeVisible();
+  await expect(close).toHaveAttribute('aria-label', 'Abbrechen');
+  const b = await box(close);
+  const vp = page.viewportSize()!;
+  if (vp.width > 640) expect(b.y).toBeCloseTo(20, 0);
+  else expect(b.y + b.height).toBeCloseTo(vp.height - 20, 0);
+  expect(b.x + b.width).toBeCloseTo(vp.width - 20, 0);
+  await drag(page, [100, 150], [300, 260]);
+  await close.click();
+  await expectState(page, 'form');
+  await expect(x.panel).toBeVisible();
+  // A fresh screenshot is dropped, as with Escape.
+  await expect(x.thumb).toBeHidden();
+  await expect(close).toBeHidden();
+});
+
 test('rectangle, marker, undo, clear all, Ctrl/Cmd+Z and minimum sizes', async ({ page }) => {
   const x = w(page);
   await takeShot(page);

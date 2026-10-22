@@ -102,6 +102,8 @@ export class Widget implements FeedbackInstance {
   private quiet = false;
   private saveTimer: ReturnType<typeof setTimeout> | undefined;
   private closeTimer: ReturnType<typeof setTimeout> | undefined;
+  /** Signed link to the last sent feedback, shown on the success page. */
+  private shareUrl: string | null = null;
   private destroyed = false;
 
   constructor(
@@ -152,6 +154,7 @@ export class Widget implements FeedbackInstance {
         this.marksChanged();
       },
       done: () => this.finishAnnotating(),
+      cancel: () => this.cancelAnnotating(),
     });
     this.capturing = h('div', { class: 'cap', hidden: true }, h('span', { class: 'sp', 'aria-hidden': 'true' }));
     this.panel = createPanel(this.header.el, h('div', { class: 'bd' }, this.form.el, this.success.el, this.failure.el));
@@ -311,7 +314,8 @@ export class Widget implements FeedbackInstance {
       this.live.announce(t('sending'));
     } else if (next === 'success') {
       this.success.button.focus({ preventScroll: true });
-      this.closeTimer = setTimeout(() => this.go('CLOSE'), SUCCESS_CLOSE_MS);
+      // Stays open while a link is shown, so that it can be copied.
+      if (this.shareUrl === null) this.closeTimer = setTimeout(() => this.go('CLOSE'), SUCCESS_CLOSE_MS);
     } else if (next === 'error') {
       this.failure.button.focus({ preventScroll: true });
     }
@@ -626,8 +630,10 @@ export class Widget implements FeedbackInstance {
       this.errors = {};
       this.validated = false;
       this.idempotencyKey = uuid();
+      this.shareUrl = result.url ?? null;
+      this.success.setLink(this.shareUrl);
       this.go('SENT');
-      this.events.emit('after_send', { id: result.id });
+      this.events.emit('after_send', { id: result.id, ...(result.url ? { url: result.url } : {}) });
       return;
     }
 

@@ -153,3 +153,49 @@ test('a repeated request with the same Idempotency-Key creates no duplicate', as
   expect((await second.json()).id).toBe((await first.json()).id);
   expect(entries().filter((e) => e.message === message)).toHaveLength(1);
 });
+
+test('the share link on the thank you screen and the team link open the feedback page', async ({ page, context, browserName }) => {
+  const message = `Link ${browserName} ${Date.now()}`;
+  await open(page, keys().open);
+  await write(page, message);
+  await shadow(page, '.tr button').first().click();
+  await expect(shadow(page, '.tb')).toBeVisible();
+  await shadow(page, '.tb [data-action=done]').click();
+  await shadow(page, 'button[type=submit]').click();
+  await expect(shadow(page, '.st.ok')).toBeVisible();
+
+  // Sender: read-only link with copy button.
+  const senderUrl = await shadow(page, '.st.ok .sh input').inputValue();
+  expect(senderUrl).toMatch(new RegExp(`^${API}/v1/feedback/[0-9a-z]{26}\\?expires=\\d+&signature=[0-9a-f]{64}$`));
+  await shadow(page, '.st.ok button.cp').click();
+  await expect(shadow(page, '.st.ok button.cp')).toHaveText('Kopiert');
+
+  const viewer = await context.newPage();
+  await viewer.goto(senderUrl);
+  await expect(viewer.locator('h1')).toHaveText('E2E Website');
+  await expect(viewer.locator('.message')).toHaveText(message);
+  await expect(viewer.locator('.status')).toHaveText('open');
+  await expect(viewer.locator('form.state')).toHaveCount(0);
+  const img = viewer.locator('.shot img');
+  await expect(img).toBeVisible();
+  expect(await img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 500)).toBe(true);
+  const [download] = await Promise.all([viewer.waitForEvent('download'), viewer.getByText(/^Download/).click()]);
+  expect(download.suggestedFilename()).toMatch(/^feedback-[0-9a-z]{26}\.jpg$/);
+
+  // Team: feedback:link can complete and reopen.
+  const id = senderUrl.split('/v1/feedback/')[1]!.split('?')[0]!;
+  const team = artisanJson<{ url: string; manage: boolean }>('feedback:link', id, '--by=E2E Team');
+  expect(team.manage).toBe(true);
+  await viewer.goto(team.url);
+  await viewer.getByRole('button', { name: 'Mark as completed' }).click();
+  await expect(viewer.locator('.status')).toContainText('completed');
+  expect(artisanJson<Entry>('feedback:show', id).completed_at).not.toBeNull();
+  await viewer.getByRole('button', { name: 'Reopen' }).click();
+  await expect(viewer.locator('.status')).toHaveText('open');
+  expect(artisanJson<Entry>('feedback:show', id).completed_at).toBeNull();
+
+  // Tampered links reveal nothing.
+  const forged = await viewer.goto(senderUrl.replace(/signature=./, 'signature=0'));
+  expect(forged!.status()).toBe(403);
+  expect(await forged!.text()).toBe('');
+});

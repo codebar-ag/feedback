@@ -76,6 +76,11 @@ export const CSS = `
 .st.err .ic{color:var(--fb-danger);background:#F6E5E3}
 .ic svg{width:28px;height:28px;stroke-width:2.6}
 .st h2{margin:6px 0 0;font-size:18px;font-weight:700;line-height:1.3}
+.sh{width:100%;display:flex;flex-direction:column;gap:6px;margin-top:8px;text-align:left}
+.sl{font-size:13px;font-weight:600;color:var(--fb-ink-muted)}
+.sw{display:flex;gap:8px}
+.sw input{flex:1;min-width:0;font:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--fb-border);border-radius:10px;background:var(--fb-surface-sunken);color:var(--fb-ink)}
+.cp{flex:none;font:inherit;font-size:13px;font-weight:700;padding:0 14px;border:0;border-radius:10px;background:var(--fb-strong);color:var(--fb-on-strong)}
 .st p{margin:0;color:var(--fb-ink-muted);font-size:15px}
 .pl{margin-top:10px;border:1px solid var(--fb-border);background:var(--fb-surface);border-radius:999px;padding:10px 24px;font-size:15px;font-weight:600}
 .pl:hover{border-color:var(--fb-ink-muted)}
@@ -89,6 +94,9 @@ export const CSS = `
 .tb button{width:40px;height:40px;border:0;border-radius:50%;background:transparent;color:var(--fb-ink);display:flex;align-items:center;justify-content:center;padding:0;flex:none}
 .tb button:hover{background:var(--fb-surface-sunken)}
 .tb [aria-pressed="true"]{background:var(--fb-surface-sunken);box-shadow:inset 0 0 0 2px var(--fb-ink)}
+.xb{position:fixed;top:20px;right:20px;z-index:var(--fb-z);width:44px;height:44px;border:0;border-radius:50%;background:var(--fb-surface);color:var(--fb-ink);display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 8px 28px rgba(16,31,60,.3)}
+.xb:hover{background:var(--fb-surface-sunken)}
+@media (max-width:640px){.xb{top:auto;bottom:20px}}
 .dv{width:1px;height:24px;background:var(--fb-border);margin:0 4px;flex:none}
 .tb .fin{width:auto;border-radius:999px;padding:0 16px;background:var(--fb-strong);color:var(--fb-on-strong);font-size:14px;font-weight:700}
 .tb .fin:hover{background:var(--fb-strong);filter:brightness(1.06)}
