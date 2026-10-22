@@ -24,14 +24,28 @@
 
 ## Features
 
-- **Full-page screenshots** on demand, with a rectangle and a highlighter to mark the problem
-- **Privacy first**: mask sensitive elements with `data-feedback-mask`, password fields are always hidden, console logs are redacted in the browser
+**For visitors**
+
+- **Full-page screenshots** on demand, with a rectangle and a highlighter to mark the problem. Close with ✕ or Esc
+- **Share link after sending**: the thank you screen shows a link to the submitted feedback with a copy button
 - **Drafts survive** closing the panel, navigating and reloading the page
-- **Diagnostics**: console errors, failed requests, browser, OS, viewport and page size
-- **Identity**: pass the signed-in user and the email field becomes "Sending as"
-- **Four languages** (`de_CH`, `fr_CH`, `en_CH`, `it_CH`) and a project color with automatic contrast
-- **Accessible** (WCAG 2.2 AA), isolated in a Shadow DOM, 18 KB gzip, no runtime dependencies
-- **Your data, your server**: a small Laravel API with origin and IP allowlists, rate limits and a honeypot. Screenshots are stored in your database
+- **Four languages** (`de_CH`, `fr_CH`, `en_CH`, `it_CH`), every text can be overridden
+- **Accessible** (WCAG 2.2 AA), keyboard and touch friendly, bottom sheet on phones
+
+**For your team**
+
+- **Diagnostics**: console errors, failed requests, browser, OS, viewport, page size and your own `customData`
+- **Feedback page per entry**: a signed, expiring link shows every detail and the screenshot, with download and buttons to complete or reopen. No login, no admin panel to run
+- **Artisan workflow**: list, filter by project, show, export, link, complete and reopen, all with `--json` for scripts
+- **Hooks**: widget events in the browser, a Laravel event on the server for Slack, mail or your ticket system
+- **Activity log**: who completed or reopened what, from the CLI or from a link
+
+**For your stack**
+
+- **Any website or app**: npm package or a single script tag, React, Vue, Alpine, Livewire, plain HTML. Isolated in a Shadow DOM, 18 KB gzip, no runtime dependencies
+- **Many projects, many environments**: one API serves any number of projects, each with several origins (wildcards and `localhost:*` included), optional IP ranges, its own color and daily limit
+- **Privacy first**: mask elements with `data-feedback-mask`, password fields are always hidden, console logs are redacted in the browser
+- **Your data, your server**: a small Laravel API with origin and IP allowlists, rate limits and a honeypot. Screenshots are stored in your database (SQLite, MySQL or PostgreSQL)
 
 ## How it works
 
@@ -43,7 +57,8 @@
 </p>
 
 3. The widget sends message, screenshot and diagnostics to your API: `POST /v1/projects/{key}/feedback`.
-4. The API checks origin, IP and rate limits and stores everything in your database. You work through the feedback with Artisan commands.
+4. The API checks origin, IP and rate limits, stores everything in your database and answers with a signed link to the feedback, which the thank you screen offers to copy.
+5. Your team works through the feedback with Artisan commands or shares a [feedback page link](#feedback-pages-and-share-links) with whoever fixes it, who can mark it as completed right there.
 
 The repository contains both parts: the **API**, a Laravel 13 app in the root folder, and the **widget** in [`widget/`](widget), published as [`@codebar-ag/feedback-widget`](https://www.npmjs.com/package/@codebar-ag/feedback-widget).
 
@@ -52,7 +67,7 @@ The repository contains both parts: the **API**, a Laravel 13 app in the root fo
 **1. Install the API**
 
 ```bash
-git clone https://github.com/codebar-ag/feedback.git && cd feedback
+git clone https://github.com/codebar-ag/feedback.codebar.ch.git feedback && cd feedback
 composer install
 cp .env.example .env && php artisan key:generate
 touch database/database.sqlite && php artisan migrate
@@ -147,7 +162,7 @@ feedback.on('before_send', (payload) => {
   payload.custom_data = { ...payload.custom_data, route: location.pathname };
   // return false to cancel
 });
-feedback.on('after_send', ({ id }) => console.log('Feedback stored', id));
+feedback.on('after_send', ({ id, url }) => console.log('Feedback stored', id, url)); // url: share link, if enabled
 feedback.on('error', ({ code, status }) => console.warn(code, status));
 ```
 
@@ -196,6 +211,49 @@ In single-page apps call `feedback.identify(user)` after sign-in.
 
 Allow the API in `connect-src` and `blob: data:` in `img-src`. For the script tag also allow its host in `script-src`. Styles need nothing, the widget uses `adoptedStyleSheets`.
 
+### Recipes
+
+**Several environments, one project.** Production, staging, preview deployments and local development can share a project:
+
+```bash
+php artisan feedback:project:create "Shop" \
+  --origin=https://shop.example.com \
+  --origin=https://*.preview.example.com \
+  --origin=http://localhost:*
+```
+
+**Internal tool.** Combine origins with the office network and VPN, both must match:
+
+```bash
+php artisan feedback:project:create "Intranet" --origin=https://intranet.example.com --ip=10.0.0.0/8 --ip=2001:db8::/32
+```
+
+**Acceptance testing.** Make the screenshot mandatory and tag every report with the build under test:
+
+```ts
+initFeedback({ projectKey, endpoint, screenshot: { mode: 'required' }, customData: { build: import.meta.env.VITE_BUILD } });
+```
+
+**Multi-tenant SaaS.** Send the tenant and plan along, and the signed-in user instead of an email field:
+
+```ts
+feedback.identify({ id: user.id, name: user.name, email: user.email });
+feedback.setData({ tenant: tenant.slug, plan: tenant.plan });
+```
+
+**Your own button.** Hide the launcher and open the panel from your help menu:
+
+```ts
+feedback.hideLauncher();
+document.querySelector('#report-problem')!.addEventListener('click', () => feedback.open());
+```
+
+**Analytics or support chat.** React to sent feedback in the page:
+
+```ts
+feedback.on('after_send', ({ id }) => analytics.track('feedback_sent', { id }));
+```
+
 ## Managing projects and feedback
 
 ```bash
@@ -205,12 +263,17 @@ php artisan feedback:project:show {key}
 php artisan feedback:project:update {key} --add-origin=https://staging.example.com --color=white --deactivate
 php artisan feedback:project:rotate-key {key}
 
-php artisan feedback:list --open
+php artisan feedback:list --open --project={key}
 php artisan feedback:show {id}
+php artisan feedback:link {id} [--expires=10080] [--by="Name"] [--read-only]
 php artisan feedback:export {id} --path=./export
-php artisan feedback:complete {id} {id}
-php artisan feedback:reopen {id}
+php artisan feedback:complete {id} {id} [--by="Name"]
+php artisan feedback:reopen {id} [--by="Name"]
 ```
+
+`feedback:list` shows the newest 20 entries: filter with `--project` (public key or ID), `--open` or `--completed`, and change the number with `--limit`.
+
+### Multiple origins and IPs
 
 `--origin`, `--add-origin`, `--remove-origin`, `--ip`, `--add-ip` and `--remove-ip` take one value each. Repeat the option for several hosts; comma-separated lists are not split:
 
@@ -220,11 +283,66 @@ php artisan feedback:project:update {key} --add-origin=https://web.example.test 
 php artisan feedback:project:update {key} --remove-origin=https://staging.example.com
 ```
 
-All commands accept `--json`. Changing commands accept `--by="Name"`, which is recorded in the activity log.
+All commands accept `--json`, handy for scripts and CI:
+
+```bash
+php artisan feedback:list --open --project=fbk_live_92T7QQB6fj6Zb37jBGzrDI --json | jq -r '.[].id'
+```
+
+Changing commands accept `--by="Name"`, which is recorded in the activity log.
 
 - **Origins**: `https://app.example.com` exact, `https://*.example.com` all subdomains, `http://localhost:*` any port, `*` any origin (needs `--allow-any-origin`).
 - **IPs**: single addresses or CIDR ranges, IPv4 and IPv6. No IPs means no restriction. A request must match the origins **and** the IPs.
 - **Color**: `black`, `white` or a hex value. Text becomes white or dark blue, whichever has more contrast, and button tones are adjusted until they reach 4.5:1.
+- **Daily limit**: `--limit=500` caps the entries per project and day, `--deactivate` / `--activate` switch a project off and on without deleting anything, `rotate-key` replaces a leaked key.
+
+## Feedback pages and share links
+
+Every entry has a page with the message, sender, page URL, browser, system, viewport, console and network log, custom data and the screenshot (inline, full size and as download). The page is reached through a **signed, expiring link**: no account, no admin panel, nothing to install for whoever receives it.
+
+**Team links** come from the CLI and can complete and reopen the entry:
+
+```bash
+php artisan feedback:link 01JD8Z4W8K5Q3F7N2M6R9T1V0X --by="Anna Muster"
+```
+
+```
+  Expires ............................................ 2026-10-29 14:30:52 UTC
+  Screenshot ................................................................ yes
+  Status changes ........................................................ allowed
+
+https://feedback.example.com/v1/feedback/01JD8Z4W8K5Q3F7N2M6R9T1V0X?by=Anna%20Muster&expires=…&manage=1&signature=…
+```
+
+| Option | |
+|---|---|
+| `--expires=` | Minutes the link is valid, default 10080 (7 days), at most 43200 (30 days) |
+| `--by=` | Name written to the activity log when the status is changed through this link |
+| `--read-only` | Page and screenshot only, without the buttons |
+| `--json` | `url`, `screenshot_url` (direct download), `manage`, `expires_at` |
+
+Paste the link into a ticket, a chat or an email. The developer opens it, downloads the screenshot and clicks **Mark as completed** when the fix is live.
+
+**Share links for the sender** are returned by the API after sending and shown on the thank you screen with a copy button, so the visitor can attach the report to an email or a support ticket. They are always read-only and valid for `FEEDBACK_SHARE_LINK_MINUTES` (default 7 days, `0` turns them off).
+
+**Notifications.** Every stored feedback dispatches `App\Events\FeedbackReceived`. A listener can post a team link to Slack, Teams or your ticket system:
+
+```php
+use App\Events\FeedbackReceived;
+use App\Support\FeedbackLink;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
+
+Event::listen(function (FeedbackReceived $event): void {
+    $link = FeedbackLink::page($event->entry, now()->addDays(14), manage: true, by: 'Slack');
+
+    Http::post(config('services.slack.feedback_webhook'), [
+        'text' => "New feedback for {$event->entry->project->name}: {$event->entry->message}\n{$link}",
+    ]);
+});
+```
+
+**Security.** Links are signed with `APP_KEY`; changing any part (ID, expiry, `manage`, `by`) invalidates them. Invalid and expired links get the same empty `403` as every other unknown URL. Anyone holding a link can use it until it expires, so pick the expiry to match where you share it. Rotating `APP_KEY` revokes all links at once. Pages are `noindex`, `no-store`, `no-referrer`, run no JavaScript and load nothing from other hosts. The link host comes from `APP_URL` (CLI) or the request (widget), so set `APP_URL` to the public URL of the API.
 
 ## Configuration
 
@@ -237,6 +355,8 @@ Set in `.env`, see [`config/feedback.php`](config/feedback.php):
 | `FEEDBACK_LIMIT_PER_IP_PER_MINUTE` | `10` | `0` disables the limit |
 | `FEEDBACK_LIMIT_PER_PROJECT_PER_MINUTE` | `60` | `0` disables the limit |
 | `FEEDBACK_MIN_ELAPSED_MS` | `2000` | Faster submissions are dropped silently |
+| `FEEDBACK_SHARE_LINK_MINUTES` | `10080` | Validity of the share link shown after sending, max. 43200, `0` turns it off |
+| `APP_URL` | | Public URL of the API, used for links created with `feedback:link` |
 | `TRUSTED_PROXIES` | | Load balancer or CDN addresses |
 | `CACHE_STORE` | `file` | Use `database` or `redis` with several instances |
 | `OH_DEAR_HEALTH_CHECK_*` | on, needs the secret | [Oh Dear](https://ohdear.app) application health |
@@ -250,7 +370,7 @@ Set in `.env`, see [`config/feedback.php`](config/feedback.php):
 - Screenshots are up to 6 MB: set `post_max_size` and `upload_max_filesize` to at least 8 MB. On MySQL raise `max_allowed_packet` to 16 MB.
 - Behind a load balancer set `TRUSTED_PROXIES`, otherwise IP allowlists and rate limits see the proxy.
 - Run `php artisan schedule:run` every minute for the health checks.
-- `GET /up` is the health endpoint. Every other path, including `/`, returns 404 and is excluded from search engines.
+- `GET /up` is the health endpoint. Every other path, including `/`, returns an empty `403` and is excluded from search engines. Browsers can only open validly signed feedback pages.
 
 ## HTTP API
 
@@ -258,13 +378,22 @@ Set in `.env`, see [`config/feedback.php`](config/feedback.php):
 |---|---|---|
 | `POST` | `/v1/projects/{key}/feedback` | Submit feedback (`multipart/form-data`, `Idempotency-Key` header) |
 | `GET` | `/v1/projects/{key}/config` | Project color for the widget |
+| `GET` | `/v1/feedback/{id}?expires=…&signature=…` | Feedback page (signed link) |
+| `GET` | `/v1/feedback/{id}/screenshot?…` | Screenshot, `download=1` as attachment (signed link) |
+| `POST` | `/v1/feedback/{id}/status?manage=1&…` | `status=completed` or `status=open` (signed team link) |
 | `GET` | `/up` | Health check |
 
-Responses: `201` created, `200` duplicate `Idempotency-Key`, `403` origin or IP not allowed, `404` unknown project, `413` too large, `422` validation failed, `429` rate limited. Every stored feedback dispatches `App\Events\FeedbackReceived`, the place to hook in notifications.
+Responses: `201` created, `200` duplicate `Idempotency-Key`, `403` origin or IP not allowed, `404` unknown project, `413` too large, `422` validation failed, `429` rate limited. A successful submission returns:
+
+```json
+{ "id": "01JD8Z4W8K5Q3F7N2M6R9T1V0X", "status": "received", "url": "https://feedback.example.com/v1/feedback/01JD8Z…?expires=…&signature=…", "url_expires_at": "2026-10-29T14:30:52+00:00" }
+```
+
+`url` and `url_expires_at` are missing when share links are turned off. Every stored feedback dispatches `App\Events\FeedbackReceived`, see [Notifications](#feedback-pages-and-share-links).
 
 ## Security and privacy
 
-The project key is public by design. The origin check is enforced by browsers, so use IP allowlists for internal apps and keep rate limits on for public sites. The API stores email, message, screenshot, browser data and the full IP address: mention the widget in your privacy policy. Please report vulnerabilities as described in [SECURITY.md](SECURITY.md).
+The project key is public by design. Feedback pages are only reachable through signed, expiring links, see [Security](#feedback-pages-and-share-links). The origin check is enforced by browsers, so use IP allowlists for internal apps and keep rate limits on for public sites. The API stores email, message, screenshot, browser data and the full IP address: mention the widget in your privacy policy. Please report vulnerabilities as described in [SECURITY.md](SECURITY.md).
 
 ## Development
 

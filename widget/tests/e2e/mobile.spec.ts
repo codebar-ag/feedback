@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { box, expectState, fill, marks, settle, sid, visit, w } from './helpers';
+import { box, expectState, fill, marks, settle, sid, takeShot, visit, w } from './helpers';
 
 // bottom sheet, touch, status pages on mobile.
 test('bottom sheet with 12 px margins, launcher hidden while open', async ({ page }, info) => {
@@ -77,4 +77,20 @@ test('success and error pages on mobile', async ({ page }, info) => {
   await x.failure.locator('button').tap();
   await x.submit.tap();
   await expect(x.success).toBeVisible();
+});
+
+test('the close button sits bottom right in annotation mode and cancels', async ({ page }, info) => {
+  await visit(page, sid(info));
+  const x = w(page);
+  await x.launcher.click();
+  await takeShot(page);
+  const close = x.host.locator('.xb');
+  const b = await box(close);
+  const vp = page.viewportSize()!;
+  expect(b.y + b.height).toBeCloseTo(vp.height - 20, 0);
+  expect(b.x + b.width).toBeCloseTo(vp.width - 20, 0);
+  const bar = await box(x.toolbar);
+  expect(b.y).toBeGreaterThan(bar.y + bar.height);
+  await close.tap();
+  await expectState(page, 'form');
 });

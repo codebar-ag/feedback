@@ -62,6 +62,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Share link after sending
+    |--------------------------------------------------------------------------
+    |
+    | Minutes the signed link returned to the widget stays valid. The thank
+    | you screen shows it with a copy button. 0 switches it off. Links for the
+    | team are created with feedback:link.
+    |
+    */
+
+    'share_link_minutes' => ($minutes = $limit('FEEDBACK_SHARE_LINK_MINUTES', 7 * 24 * 60)) === null ? null : min($minutes, 30 * 24 * 60),
+
+    /*
+    |--------------------------------------------------------------------------
     | Screenshot limits
     |--------------------------------------------------------------------------
     */

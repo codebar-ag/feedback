@@ -22,7 +22,9 @@ it('stores feedback with the required fields', function (): void {
 
     $entry = FeedbackEntry::query()->sole();
     $response->assertCreated()
-        ->assertExactJson(['id' => $entry->id, 'status' => 'received'])
+        ->assertJsonPath('id', $entry->id)
+        ->assertJsonPath('status', 'received')
+        ->assertJsonStructure(['id', 'status', 'url', 'url_expires_at'])
         ->assertHeader('Access-Control-Allow-Origin', TEST_ORIGIN);
 
     expect($entry)

@@ -101,7 +101,7 @@ export interface FeedbackEvents {
   open: () => void;
   close: () => void;
   before_send: (payload: FeedbackPayload) => boolean | undefined;
-  after_send: (result: { id: string }) => void;
+  after_send: (result: { id: string; url?: string }) => void;
   error: (error: FeedbackError) => void;
 }
 

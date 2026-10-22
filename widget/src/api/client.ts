@@ -1,7 +1,7 @@
 import type { FeedbackPayload } from '../types.js';
 
 export type SendResult =
-  | { ok: true; id: string; status: number }
+  | { ok: true; id: string; status: number; url?: string }
   | { ok: false; code: string; status: number; fields?: Record<string, string[]>; retryAfter?: number };
 
 export interface SendOptions {
@@ -81,8 +81,10 @@ export async function sendFeedback(
     }
 
     if (res && (res.status === 200 || res.status === 201)) {
-      const data = (await res.json().catch(() => ({}))) as { id?: string };
-      return { ok: true, id: String(data.id ?? ''), status: res.status };
+      const data = (await res.json().catch(() => ({}))) as { id?: string; url?: unknown };
+      // Signed link to the sender's own feedback, only http(s).
+      const url = typeof data.url === 'string' && /^https?:\/\//i.test(data.url) ? data.url : undefined;
+      return { ok: true, id: String(data.id ?? ''), status: res.status, ...(url ? { url } : {}) };
     }
 
     if (!res || res.status >= 500) {

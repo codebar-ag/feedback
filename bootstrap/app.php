@@ -21,6 +21,7 @@ use Illuminate\Http\Middleware\HandleCors;
 use Illuminate\Http\Middleware\ValidatePostSize;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Routing\Exceptions\InvalidSignatureException;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Validation\ValidationException;
@@ -71,8 +72,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 $e instanceof ValidationException => ApiError::response(ErrorCode::ValidationFailed, 422, ['fields' => $e->errors()]),
                 $e instanceof ThrottleRequestsException => ApiError::response(ErrorCode::RateLimited, 429, [], array_map(strval(...), $e->getHeaders())),
                 $e instanceof PostTooLargeException => ApiError::response(ErrorCode::PayloadTooLarge, 413),
-                // Unknown paths reveal nothing: empty 403.
-                $e instanceof ModelNotFoundException, $e instanceof NotFoundHttpException => new Response('', 403),
+                // Unknown paths and invalid or expired links reveal nothing: empty 403.
+                $e instanceof ModelNotFoundException, $e instanceof NotFoundHttpException, $e instanceof InvalidSignatureException => new Response('', 403),
                 $e instanceof MethodNotAllowedHttpException => ApiError::response(ErrorCode::MethodNotAllowed, 405, [], array_map(strval(...), $e->getHeaders())),
                 $e instanceof HttpExceptionInterface => ApiError::response(ErrorCode::ServerError, $e->getStatusCode()),
                 default => ApiError::response(ErrorCode::ServerError, 500),
