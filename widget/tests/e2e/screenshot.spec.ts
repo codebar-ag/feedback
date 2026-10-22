@@ -248,6 +248,40 @@ test('framework attributes like :class or x-on:click do not blank the screenshot
   expect(blue, `blue pixels ${blue}`).toBeGreaterThan(10_000);
 });
 
+test('noscript and template content never shows up in the screenshot', async ({ page }, info) => {
+  const id = sid(info);
+  const x = w(page);
+  await page.evaluate(() => {
+    const ns = document.createElement('noscript');
+    ns.style.cssText = 'display:block;width:200px;height:200px;background:rgb(255,0,0)';
+    ns.innerHTML = '<div class="toast">Nur ohne JavaScript</div>';
+    const tpl = document.createElement('template');
+    tpl.innerHTML = '<div style="width:200px;height:200px;background:rgb(255,0,0)"></div>';
+    document.getElementById('intro')!.prepend(ns, tpl);
+  });
+  await fill(page, 'a@b.ch', 'Noscript');
+  await takeShot(page);
+  await x.done.click();
+  await x.submit.click();
+  await expect(x.success).toBeVisible();
+  const red = await page.evaluate(async (url) => {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    const c = document.createElement('canvas');
+    c.width = img.naturalWidth;
+    c.height = img.naturalHeight;
+    const ctx = c.getContext('2d')!;
+    ctx.drawImage(img, 0, 0);
+    const d = ctx.getImageData(0, 0, c.width, c.height).data;
+    let count = 0;
+    for (let i = 0; i < d.length; i += 4) if (d[i]! > 200 && d[i + 1]! < 60 && d[i + 2]! < 60) count++;
+    return count;
+  }, `/s/${id}/__shot/0`);
+  // The fixture has red text of its own (about 1500 px), the block would add up to 40000.
+  expect(red, `red pixels ${red}`).toBeLessThan(5000);
+});
+
 test('a failed screenshot keeps the camera usable and sends without image', async ({ page }, info) => {
   const id = sid(info);
   const x = w(page);

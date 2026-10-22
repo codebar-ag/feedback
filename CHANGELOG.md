@@ -19,6 +19,7 @@ All notable changes to the API and the widget are documented here. The format fo
 
 ### Fixed
 
+- `<noscript>` content (e.g. of an Alpine toast region) showed up as literal markup in screenshots; `<noscript>` and `<template>` are now left out.
 - Screenshots with the script tag from the API: the lazy screenshot chunk was served without `Access-Control-Allow-Origin`, so other websites could not load it.
 - Screenshots of pages using Alpine, Vue or other framework attributes (`:class`, `x-on:click`) were blank.
 
