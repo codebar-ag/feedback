@@ -313,7 +313,7 @@ Changing commands accept `--by="Name"`, which is recorded in the activity log.
 
 ## Feedback pages and share links
 
-Every entry has a page with the message, sender, page URL, browser, system, viewport, console and network log, custom data and the screenshot (inline, full size and as download). The page is reached through a **signed, expiring link**: no account, no admin panel, nothing to install for whoever receives it.
+Every entry has a page built for fixing it. The **Feedback** tab shows the screenshot first, with the sender's message floating over it: name, email, comment, page and time, sticky while you scroll and hideable with one click. The **Technical** tab lists the environment (browser, system, viewport, screen, language, IP, user agent …), the console with errors and warnings highlighted and stack traces, failed requests and custom data. Every value and log entry has a copy button, **Copy report** puts everything into the clipboard as plain text for a ticket. Download and full size are one click away, team links add **Mark as completed** / **Reopen**. The page is reached through a **signed, expiring link**: no account, no admin panel, nothing to install for whoever receives it.
 
 **Team links** come from the CLI and can complete and reopen the entry:
 
@@ -357,7 +357,7 @@ Event::listen(function (FeedbackReceived $event): void {
 });
 ```
 
-**Security.** Links are signed with `APP_KEY`; changing any part (ID, expiry, `manage`, `by`) invalidates them. Invalid and expired links get the same empty `403` as every other unknown URL. Anyone holding a link can use it until it expires, so pick the expiry to match where you share it. Rotating `APP_KEY` revokes all links at once. Pages are `noindex`, `no-store`, `no-referrer`, run no JavaScript and load nothing from other hosts. The link host comes from `APP_URL` (CLI) or the request (widget), so set `APP_URL` to the public URL of the API.
+**Security.** Links are signed with `APP_KEY`; changing any part (ID, expiry, `manage`, `by`) invalidates them. Invalid and expired links get the same empty `403` as every other unknown URL. Anyone holding a link can use it until it expires, so pick the expiry to match where you share it. Rotating `APP_KEY` revokes all links at once. Pages are `noindex`, `no-store`, `no-referrer`, run only one inline script for tabs and copy buttons (allowed by a per-request nonce) and load nothing from other hosts. The link host comes from `APP_URL` (CLI) or the request (widget), so set `APP_URL` to the public URL of the API.
 
 ## Configuration
 
