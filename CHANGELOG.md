@@ -19,6 +19,7 @@ All notable changes to the API and the widget are documented here. The format fo
 
 ### Fixed
 
+- Feedback links answered 403 in browsers behind a TLS terminating proxy (Laravel Cloud): the navigation guard checked the signature against the http:// URL before the trusted proxies were applied. The route's signature check stays authoritative.
 - `<noscript>` content (e.g. of an Alpine toast region) showed up as literal markup in screenshots; `<noscript>` and `<template>` are now left out.
 - Screenshots with the script tag from the API: the lazy screenshot chunk was served without `Access-Control-Allow-Origin`, so other websites could not load it.
 - Screenshots of pages using Alpine, Vue or other framework attributes (`:class`, `x-on:click`) were blank.
