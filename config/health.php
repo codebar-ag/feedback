@@ -31,7 +31,7 @@ return [
      * Oh Dear application health monitoring: https://ohdear.app/docs/features/application-health-monitoring
      */
     'oh_dear_endpoint' => [
-        'enabled' => (bool) env('OH_DEAR_HEALTH_CHECK_ENABLED', false),
+        'enabled' => (bool) env('OH_DEAR_HEALTH_CHECK_ENABLED', true),
         'always_send_fresh_results' => true,
         'secret' => env('OH_DEAR_HEALTH_CHECK_SECRET'),
         'url' => env('OH_DEAR_HEALTH_CHECK_PATH', '/oh-dear-health-check-results'),

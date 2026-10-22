@@ -11,11 +11,9 @@ use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Activitylog\Models\Activity;
-use Spatie\Health\Checks\Checks\CacheCheck;
 use Spatie\Health\Checks\Checks\DatabaseCheck;
 use Spatie\Health\Checks\Checks\DebugModeCheck;
 use Spatie\Health\Checks\Checks\EnvironmentCheck;
-use Spatie\Health\Checks\Checks\OptimizedAppCheck;
 use Spatie\Health\Facades\Health;
 use Spatie\SecurityAdvisoriesHealthCheck\SecurityAdvisoriesCheck;
 
@@ -28,14 +26,16 @@ final class AppServiceProvider extends ServiceProvider
         $this->configureHealthChecks();
     }
 
-    /** Checks for Oh Dear (OH_DEAR_HEALTH_CHECK_*) and `php artisan health:check`. */
+    /**
+     * Checks for Oh Dear (OH_DEAR_HEALTH_CHECK_*) and `php artisan health:check`.
+     * No cache or optimize checks: Laravel Cloud hibernates the app and does
+     * not cache config, so those would always fail.
+     */
     private function configureHealthChecks(): void
     {
         Health::checks([
             DatabaseCheck::new(),
-            CacheCheck::new(),
             DebugModeCheck::new(),
-            OptimizedAppCheck::new(),
             EnvironmentCheck::new()->if($this->app->isProduction()),
             SecurityAdvisoriesCheck::new()->lastDayOfMonth(),
         ]);
