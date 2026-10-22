@@ -231,7 +231,8 @@ Set in `.env`, see [`config/feedback.php`](config/feedback.php):
 | `FEEDBACK_MIN_ELAPSED_MS` | `2000` | Faster submissions are dropped silently |
 | `TRUSTED_PROXIES` | | Load balancer or CDN addresses |
 | `CACHE_STORE` | `file` | Use `database` or `redis` with several instances |
-| `OH_DEAR_HEALTH_CHECK_*` | off | [Oh Dear](https://ohdear.app) application health |
+| `OH_DEAR_HEALTH_CHECK_*` | on, needs the secret | [Oh Dear](https://ohdear.app) application health |
+| `NIGHTWATCH_API_TOKEN`, `NIGHTWATCH_APPLICATION_ID`, `NIGHTWATCH_ENVIRONMENT_ID` | | Health check fails while Nightwatch has open issues. Token from `php artisan nightwatch:login` (valid one year); the check only runs when token and application ID are set |
 
 `DB_READ_HOST` and `DB_WRITE_HOST` are supported for read replicas.
 
