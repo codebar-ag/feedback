@@ -212,6 +212,14 @@ php artisan feedback:complete {id} {id}
 php artisan feedback:reopen {id}
 ```
 
+`--origin`, `--add-origin`, `--remove-origin`, `--ip`, `--add-ip` and `--remove-ip` take one value each. Repeat the option for several hosts; comma-separated lists are not split:
+
+```bash
+php artisan feedback:project:create "Name" --origin=https://app.example.com --origin=https://staging.example.com --origin=http://localhost:3000
+php artisan feedback:project:update {key} --add-origin=https://web.example.test --add-origin=https://preview.example.com
+php artisan feedback:project:update {key} --remove-origin=https://staging.example.com
+```
+
 All commands accept `--json`. Changing commands accept `--by="Name"`, which is recorded in the activity log.
 
 - **Origins**: `https://app.example.com` exact, `https://*.example.com` all subdomains, `http://localhost:*` any port, `*` any origin (needs `--allow-any-origin`).
