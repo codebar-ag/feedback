@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="de-CH">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>E2E Script-Tag</title>
+  </head>
+  <body>
+    <main>
+      <h1>Widget per Script-Tag von der API</h1>
+      <section style="height: 900px; background: #fff"><p>Inhalt.</p></section>
+    </main>
+    <script>
+      // As on a real website: <script src="https://feedback.example.com/widget/v1/feedback.js">.
+      const q = new URLSearchParams(location.search);
+      const script = document.createElement('script');
+      script.src = `${q.get('api')}/widget/v1/feedback.js`;
+      script.crossOrigin = 'anonymous';
+      script.onload = async () => {
+        window.feedback = await CodebarFeedback.init({ projectKey: q.get('key'), endpoint: q.get('api'), locale: 'de_CH' });
+        document.documentElement.dataset.feedbackReady = '1';
+      };
+      document.head.append(script);
+    </script>
+  </body>
+</html>

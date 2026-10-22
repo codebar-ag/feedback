@@ -13,11 +13,13 @@ All notable changes to the API and the widget are documented here. The format fo
 
 ### Changed
 
+- The widget is no longer published to npm: the API serves it at `/widget/v1/feedback.js` (one script tag, no npm, no CDN, updated with every deploy). `npm run build` compiles it into `resources/widget/v1`. The npm package `@codebar-ag/feedback-widget` 1.0.0 stays available but gets no updates. Removed: release workflow, type definitions, SRI file, publint and attw.
 - The widget only appears on pages the API accepts: it checks the project config first and stays hidden on a `403` (origin or IP not allowed). Refused `GET` requests now carry `Access-Control-Allow-Origin` so the widget can read the `403`; the preflight for sending stays refused.
 - Dev dependencies: vite 8.3.5, typescript-eslint 8.72.0.
 
 ### Fixed
 
+- Screenshots with the script tag from the API: the lazy screenshot chunk was served without `Access-Control-Allow-Origin`, so other websites could not load it.
 - Screenshots of pages using Alpine, Vue or other framework attributes (`:class`, `x-on:click`) were blank.
 
 ## [1.0.0] - 2026-10-16

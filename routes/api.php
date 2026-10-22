@@ -8,6 +8,7 @@ use App\Http\Controllers\FeedbackStatusController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\ProjectConfigController;
 use App\Http\Controllers\StoreFeedbackController;
+use App\Http\Controllers\WidgetAssetController;
 use App\Http\Middleware\ApplyProjectCors;
 use App\Http\Middleware\EnforceIpPolicy;
 use App\Http\Middleware\EnforceOriginPolicy;
@@ -17,6 +18,11 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/up', HealthController::class)->name('health');
+
+// Script tag build of the widget, for websites without npm.
+Route::get('widget/v1/{path}', WidgetAssetController::class)
+    ->where('path', 'feedback\.js|chunks/capture-[A-Za-z0-9_-]+\.js')
+    ->name('widget.asset');
 
 Route::prefix('v1/projects/{publicKey}')
     ->middleware([

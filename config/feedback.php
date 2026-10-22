@@ -62,6 +62,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Widget for script tags
+    |--------------------------------------------------------------------------
+    |
+    | The deploy build (npm run build in the root) copies the script tag build
+    | here; the API serves it at /widget/v1/feedback.js.
+    |
+    */
+
+    'widget_path' => resource_path('widget/v1'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Share link after sending
     |--------------------------------------------------------------------------
     |
