@@ -13,6 +13,7 @@
     "require": {
         "php": "^8.5",
         "laravel/framework": "^13.0",
+        "laravel/nightwatch": "^1.30.4",
         "matomo/device-detector": "^6.4",
         "spatie/laravel-activitylog": "^5.0",
         "spatie/laravel-health": "^1.40",
