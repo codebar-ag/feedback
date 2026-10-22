@@ -28,6 +28,12 @@ export class CaptureError extends Error {
 
 const MAX_BYTES = 3 * 1024 * 1024;
 
+/**
+ * Never visible on a page that runs scripts. The image is rendered without
+ * scripts, so <noscript> content would show up, e.g. as literal markup.
+ */
+const NEVER_VISIBLE = new Set(['NOSCRIPT', 'TEMPLATE']);
+
 /** XML-safe attribute name without a namespace prefix. */
 const XML_NAME = /^[A-Za-z_][\w.-]*$/;
 
@@ -82,7 +88,11 @@ export async function capturePage(options: CaptureOptions): Promise<CaptureResul
         height: h,
         scale,
         backgroundColor: background && background !== 'rgba(0, 0, 0, 0)' ? background : '#FFFFFF',
-        filter: (node) => !(node instanceof Element && (options.exclude.includes(node) || (ignore !== '' && node.matches(ignore)))),
+        filter: (node) =>
+          !(
+            node instanceof Element &&
+            (NEVER_VISIBLE.has(node.tagName) || options.exclude.includes(node) || (ignore !== '' && node.matches(ignore)))
+          ),
         onCloneEachNode: stripInvalidAttributes,
         timeout: options.timeoutMs ?? 15_000,
       }),

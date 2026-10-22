@@ -1,8 +1,8 @@
-// Builds dist/feedback.js (ESM + lazy chunk), dist/feedback.iife.js (global
-// CodebarFeedback), the type definitions and dist/sri.json.
-import { execFileSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
-import { readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+// Builds dist/feedback.iife.js (global CodebarFeedback) with its lazy screenshot
+// chunk and copies both to the API (resources/widget/v1), which serves them at
+// /widget/v1/feedback.js. dist/feedback.js (ESM) is used by the tests and the
+// playground only.
+import { cpSync, mkdirSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'vite';
@@ -46,22 +46,11 @@ await build({
   },
 });
 
-execFileSync(process.execPath, [resolve(root, 'node_modules/typescript/bin/tsc'), '-p', resolve(root, 'tsconfig.build.json')], {
-  stdio: 'inherit',
-});
-rmSync(resolve(dist, 'iife.d.ts'), { force: true });
-
-const sri = (file) =>
-  'sha384-' +
-  createHash('sha384')
-    .update(readFileSync(resolve(dist, file)))
-    .digest('base64');
-writeFileSync(
-  resolve(dist, 'sri.json'),
-  JSON.stringify(
-    { version: pkg.version, 'feedback.iife.js': sri('feedback.iife.js'), [`chunks/${chunk}`]: sri(`chunks/${chunk}`) },
-    null,
-    2,
-  ) + '\n',
-);
-console.log(`built ${pkg.name}@${pkg.version} (chunk ${chunk})`);
+const api = resolve(root, '../resources/widget/v1');
+rmSync(api, { recursive: true, force: true });
+mkdirSync(api, { recursive: true });
+cpSync(resolve(dist, 'feedback.iife.js'), resolve(api, 'feedback.js'));
+cpSync(resolve(dist, 'chunks'), resolve(api, 'chunks'), { recursive: true });
+// Older deploys copied to public/, where the web server answered without CORS.
+rmSync(resolve(root, '../public/widget'), { recursive: true, force: true });
+console.log(`built widget ${pkg.version} (chunk ${chunk}) and copied it to resources/widget/v1`);

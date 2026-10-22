@@ -52,7 +52,7 @@ it('renders wrong methods as JSON 405', function (): void {
 it('exposes no web or auth routes', function (): void {
     $uris = collect(app('router')->getRoutes()->getRoutes())->map->uri()->sort()->values()->all();
 
-    expect($uris)->toBe(['oh-dear-health-check-results', 'up', 'v1/feedback/{entry}', 'v1/feedback/{entry}/screenshot', 'v1/feedback/{entry}/status', 'v1/projects/{publicKey}/config', 'v1/projects/{publicKey}/feedback', 'v1/projects/{publicKey}/feedback']);
+    expect($uris)->toBe(['oh-dear-health-check-results', 'up', 'v1/feedback/{entry}', 'v1/feedback/{entry}/screenshot', 'v1/feedback/{entry}/status', 'v1/projects/{publicKey}/config', 'v1/projects/{publicKey}/feedback', 'v1/projects/{publicKey}/feedback', 'widget/v1/{path}']);
 });
 
 it('seeds without errors (deploys run migrate --seed)', function (): void {

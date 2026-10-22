@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Security fixes are released for the latest minor version of the API and of `@codebar-ag/feedback-widget`.
+Security fixes are released for the latest version of the API and the widget it serves.
 
 ## Reporting a vulnerability
 

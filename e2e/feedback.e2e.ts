@@ -217,3 +217,29 @@ test('the share link on the thank you screen and the team link open the feedback
   expect(forged.status()).toBe(403);
   expect(await forged.text()).toBe('');
 });
+
+test('a website loads the widget with a script tag from the API, screenshots included', async ({ page, request, browserName }) => {
+  const scriptRes = await request.get(`${API}/widget/v1/feedback.js`, { headers: { Origin: WEB } });
+  expect(scriptRes.status()).toBe(200);
+  expect(scriptRes.headers()['access-control-allow-origin']).toBe('*');
+  expect(scriptRes.headers()['content-type']).toBe('text/javascript; charset=utf-8');
+
+  const message = `Script-Tag ${browserName} ${Date.now()}`;
+  await page.goto(`${WEB}/script.html?key=${keys().open}&api=${encodeURIComponent(API)}`);
+  await expect(page.locator('html')).toHaveAttribute('data-feedback-ready', '1');
+  await shadow(page, 'button.l').click();
+  await write(page, message);
+  // The screenshot chunk is loaded with import() from the API origin: a CORS request.
+  await shadow(page, '.tr button').first().click();
+  await expect(shadow(page, '.tb')).toBeVisible();
+  await shadow(page, '.tb [data-action=done]').click();
+  await expect(shadow(page, 'img.th')).toBeVisible();
+  await shadow(page, 'button[type=submit]').click();
+  await expect(shadow(page, '.st.ok')).toBeVisible();
+
+  const item = entries().find((e) => e.message === message);
+  const entry = artisanJson<Entry>('feedback:show', item!.id);
+  expect(entry.origin).toBe(WEB);
+  expect(entry.screenshot).toMatchObject({ mime: 'image/jpeg' });
+  expect(entry.screenshot!.bytes).toBeGreaterThan(1000);
+});
