@@ -5,7 +5,7 @@ import type { Tool } from './annotate/tools.js';
 import { sendFeedback } from './api/client.js';
 import { composeShot } from './capture/compose.js';
 import { loadCapture, preloadCapture } from './capture/load.js';
-import { resolveOptions, loadProjectColor, type ResolvedOptions } from './config.js';
+import { resolveOptions, loadProjectConfig, type ResolvedOptions } from './config.js';
 import { RingBuffer } from './diagnostics/buffer.js';
 import { captureConsole } from './diagnostics/console.js';
 import { collectClient, prefetchHints } from './diagnostics/meta.js';
@@ -94,6 +94,7 @@ export class Widget implements FeedbackInstance {
   private openedAt = Date.now();
   private formHeight = 0;
   private launcherVisible = true;
+  private checked = false;
   private history: History | null = null;
   private layer: AnnotationLayer | null = null;
   private tool: Tool = 'rect';
@@ -165,12 +166,21 @@ export class Widget implements FeedbackInstance {
     this.render();
   }
 
-  /** Restores the draft, loads the project color and emits "ready". */
+  /** Checks the page against the API, restores the draft, applies the project color and emits "ready". */
   async start(): Promise<this> {
     void prefetchHints();
-    const colorLoad = this.primary ? null : loadProjectColor(this.o.endpoint, this.o.projectKey, nativeFetch);
+    const configLoad = loadProjectConfig(this.o.endpoint, this.o.projectKey, nativeFetch);
     const loaded = await this.draft.load();
+    const config = await configLoad;
     if (this.destroyed) return this;
+    if (!config.allowed) {
+      // The API would refuse every feedback from this page, so the widget never shows.
+      console.warn('[codebar feedback] this page is not allowed for the project (origin or IP), the widget stays hidden');
+      this.destroy();
+      return this;
+    }
+    this.primary ??= parseColor(config.primary);
+    this.checked = true;
     if (loaded) {
       const d = loaded.draft;
       this.form.email.value = d.email ?? '';
@@ -184,13 +194,6 @@ export class Widget implements FeedbackInstance {
       }
     }
     this.render();
-    if (colorLoad) {
-      const color = parseColor(await colorLoad);
-      if (color && !this.destroyed) {
-        this.primary = color;
-        this.render();
-      }
-    }
     this.events.emit('ready');
     return this;
   }
@@ -333,6 +336,8 @@ export class Widget implements FeedbackInstance {
     const open = state !== 'closed';
     const away = state === 'capturing' || state === 'annotating';
 
+    // Hidden until the API has accepted this page.
+    this.hostUi.host.style.display = this.checked ? '' : 'none';
     root.lang = bcp47(this.locale);
     root.classList.toggle('open', open);
     root.classList.toggle('away', away);

@@ -80,14 +80,18 @@ test('feedback with screenshot, console error and browser data lands in the data
   expect(artisanJson<Entry>('feedback:show', entry.id).completed_at).not.toBeNull();
 });
 
-test('a foreign origin is rejected with 403 and the error page', async ({ page, request }) => {
+async function visitOnly(page: Page, key: string, origin = WEB): Promise<void> {
+  await page.goto(`${origin}/index.html?key=${key}&api=${encodeURIComponent(API)}`);
+  await expect(page.locator('html')).toHaveAttribute('data-feedback-ready', '1');
+}
+
+test('a foreign origin never shows the widget and the API rejects it with 403', async ({ page, request }) => {
   const before = entries().length;
-  await open(page, keys().open, `http://127.0.0.1:${WEB_PORT}`);
-  await write(page, 'Fremde Origin');
-  await shadow(page, 'button[type=submit]').click();
-  await expect(shadow(page, '.st.err')).toBeVisible({ timeout: 15_000 });
-  await expect(shadow(page, '.st.err')).toContainText('Senden fehlgeschlagen');
-  expect(entries()).toHaveLength(before);
+  const warnings: string[] = [];
+  page.on('console', (m) => m.type() === 'warning' && warnings.push(m.text()));
+  await visitOnly(page, keys().open, `http://127.0.0.1:${WEB_PORT}`);
+  await expect(page.locator('codebar-feedback')).toHaveCount(0);
+  expect(warnings.some((w) => w.includes('not allowed for the project'))).toBe(true);
 
   const preflight = await request.fetch(`${API}/v1/projects/${keys().open}/feedback`, {
     method: 'OPTIONS',
@@ -109,17 +113,29 @@ test('a foreign origin is rejected with 403 and the error page', async ({ page, 
     multipart: { message: 'x' },
   });
   expect(forged.status()).toBe(403);
+  expect(entries()).toHaveLength(before);
 });
 
-test('an IP outside the allowed range is rejected with 403', async ({ page }) => {
+test('an IP outside the allowed range never shows the widget and is rejected with 403', async ({ page, request }) => {
   const before = entries().length;
-  await open(page, keys().ipRestricted);
-  await write(page, 'IP gesperrt');
-  await shadow(page, 'button[type=submit]').click();
-  await expect(shadow(page, '.st.err')).toBeVisible();
-  expect(await page.evaluate(() => (window as unknown as { feedbackErrors: unknown[] }).feedbackErrors)).toEqual([
-    { code: 'origin_not_allowed', status: 403 },
-  ]);
+  await visitOnly(page, keys().ipRestricted);
+  await expect(page.locator('codebar-feedback')).toHaveCount(0);
+
+  const config = await request.get(`${API}/v1/projects/${keys().ipRestricted}/config`, { headers: { Origin: WEB } });
+  expect(config.status()).toBe(403);
+  const sent = await request.post(`${API}/v1/projects/${keys().ipRestricted}/feedback`, {
+    headers: { Origin: WEB, 'Idempotency-Key': crypto.randomUUID() },
+    multipart: {
+      message: 'IP gesperrt',
+      email: 'e2e@beispiel.ch',
+      locale: 'de_CH',
+      page_url: `${WEB}/index.html`,
+      widget_version: '1.0.0',
+      elapsed_ms: '5000',
+    },
+  });
+  expect(sent.status()).toBe(403);
+  expect(await sent.json()).toEqual({ error: { code: 'origin_not_allowed' } });
   expect(entries()).toHaveLength(before);
 });
 

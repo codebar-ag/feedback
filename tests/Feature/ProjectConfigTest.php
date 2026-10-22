@@ -46,3 +46,22 @@ it('hides inactive projects', function (): void {
         ->assertNotFound()
         ->assertExactJson(['error' => ['code' => 'project_not_found']]);
 });
+
+it('lets a refused page read the 403 but not send', function (): void {
+    $project = FeedbackProject::factory()->create(['allowed_origins' => [TEST_ORIGIN]]);
+
+    test()->getJson("/v1/projects/{$project->public_key}/config", ['Origin' => 'https://evil.example'])
+        ->assertForbidden()
+        ->assertExactJson(['error' => ['code' => 'origin_not_allowed']])
+        ->assertHeader('Access-Control-Allow-Origin', 'https://evil.example')
+        ->assertHeader('Vary', 'Origin')
+        ->assertHeaderMissing('Access-Control-Allow-Methods')
+        ->assertHeaderMissing('Access-Control-Allow-Headers');
+
+    test()->call('OPTIONS', "/v1/projects/{$project->public_key}/feedback", server: [
+        'HTTP_ORIGIN' => 'https://evil.example',
+        'HTTP_ACCESS_CONTROL_REQUEST_METHOD' => 'POST',
+    ])
+        ->assertForbidden()
+        ->assertHeaderMissing('Access-Control-Allow-Origin');
+});

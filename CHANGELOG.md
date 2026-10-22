@@ -11,6 +11,11 @@ All notable changes to the API and the widget are documented here. The format fo
 - The API returns a read-only share link after sending (`FEEDBACK_SHARE_LINK_MINUTES`, `0` turns it off); the widget shows it on the thank you screen with a copy button, `after_send` receives it as `url`.
 - Close button in marking mode (top right, bottom right on phones), same as Esc.
 
+### Changed
+
+- The widget only appears on pages the API accepts: it checks the project config first and stays hidden on a `403` (origin or IP not allowed). Refused `GET` requests now carry `Access-Control-Allow-Origin` so the widget can read the `403`; the preflight for sending stays refused.
+- Dev dependencies: vite 8.3.5, typescript-eslint 8.72.0.
+
 ### Fixed
 
 - Screenshots of pages using Alpine, Vue or other framework attributes (`:class`, `x-on:click`) were blank.
