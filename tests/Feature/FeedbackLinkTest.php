@@ -6,6 +6,7 @@ use App\Models\FeedbackEntry;
 use App\Models\FeedbackProject;
 use App\Models\FeedbackScreenshot;
 use App\Support\FeedbackLink;
+use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
@@ -275,4 +276,22 @@ it('validates the new status', function (): void {
     $this->travel(2)->hours();
     test()->post($action, ['status' => 'completed'])->assertForbidden();
     expect($entry->refresh()->completed_at)->toBeNull();
+});
+
+it('opens links behind a TLS terminating proxy (production)', function (): void {
+    // Laravel Cloud: the link is https, the app sees http plus X-Forwarded-Proto.
+    TrustProxies::at('*');
+    URL::forceScheme('https');
+    $this->beforeApplicationDestroyed(function (): void {
+        TrustProxies::flushState();
+        URL::forceScheme(null);
+    });
+    $entry = FeedbackEntry::factory()->for($this->project, 'project')->create();
+    $url = feedbackLink($entry->id)['url'];
+    expect($url)->toStartWith('https://');
+    $behindProxy = ['X-Forwarded-Proto' => 'https', 'X-Forwarded-Port' => '443', ...NAVIGATE];
+
+    test()->get(str_replace('https://', 'http://', $url), $behindProxy)->assertOk()->assertSee($entry->message);
+    test()->get(str_replace('https://', 'http://', str_replace('signature=', 'signature=0', $url)), $behindProxy)->assertForbidden()->assertContent('');
+    test()->get(str_replace('https://', 'http://', url('/up')).'?signature=x', $behindProxy)->assertForbidden()->assertContent('');
 });
