@@ -9,7 +9,21 @@ updates:
     open-pull-requests-limit: 10
     groups:
       composer-minor-and-patch:
-        update-types: [minor, patch]
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    groups:
+      npm-minor-and-patch:
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: npm
     directory: /widget
@@ -30,6 +44,3 @@ updates:
     schedule:
       interval: weekly
       day: monday
-    groups:
-      github-actions:
-        patterns: ['*']
