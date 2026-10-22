@@ -195,6 +195,35 @@ test('the share link on the thank you screen and the team link open the feedback
   const img = viewer.locator('.shot img');
   await expect(img).toBeVisible();
   expect(await img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 500)).toBe(true);
+  // Feedback first: the sender's message floats over the screenshot and can be hidden.
+  await expect(viewer.locator('#card')).toContainText('e2e@beispiel.ch');
+  await viewer.getByRole('button', { name: 'Hide message' }).click();
+  await expect(viewer.locator('.message')).toBeHidden();
+  await viewer.getByRole('button', { name: 'Show message' }).click();
+  await expect(viewer.locator('.message')).toBeVisible();
+  // Technical details on the second tab, with copy buttons.
+  await expect(viewer.locator('#panel-technical')).toBeHidden();
+  await viewer.getByRole('tab', { name: /Technical/ }).click();
+  await expect(viewer.locator('#panel-technical')).toBeVisible();
+  await expect(viewer.locator('#panel-feedback')).toBeHidden();
+  expect(new URL(viewer.url()).hash).toBe('#technical');
+  await expect(viewer.locator('#h-console')).toContainText('Console');
+  await expect(viewer.locator('.kv')).toContainText('Viewport');
+  const copyReport = viewer.getByRole('button', { name: 'Copy report' });
+  if (browserName === 'chromium') {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await copyReport.click();
+    const report = await viewer.evaluate(() => navigator.clipboard.readText());
+    expect(report).toContain(message);
+    expect(report).toContain('Console:');
+  } else {
+    await copyReport.click();
+  }
+  await expect(copyReport).toHaveClass(/done/);
+  await viewer.reload();
+  await expect(viewer.locator('#panel-technical')).toBeVisible();
+  await viewer.getByRole('tab', { name: 'Feedback' }).click();
+
   const [download] = await Promise.all([viewer.waitForEvent('download'), viewer.getByText(/^Download/).click()]);
   expect(download.suggestedFilename()).toMatch(/^feedback-[0-9a-z]{26}\.jpg$/);
 

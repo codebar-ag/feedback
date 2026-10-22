@@ -86,11 +86,18 @@ it('shows the feedback page in the browser with all form details', function (): 
         ->assertSee('Alpha')
         ->assertSee('open')
         ->assertSee('Die Schaltfläche «Speichern» reagiert nicht.')
-        ->assertSee('Anna Muster &lt;anna@beispiel.ch&gt;', false)
+        ->assertSee('Anna Muster')
+        ->assertSee('<a href="mailto:anna@beispiel.ch">anna@beispiel.ch</a>', false)
+        ->assertSee('data-copy="anna@beispiel.ch"', false)
         ->assertSee('<a href="https://www.beispiel.ch/konto"', false)
         ->assertSee('Sent from')
         ->assertSee('https://www.beispiel.ch/zwei')
-        ->assertSee('<dt>Browser</dt>', false)
+        ->assertSee('<dt>Viewport</dt>', false)
+        ->assertSee('role="tab" id="tab-technical"', false)
+        ->assertSee('1 error')
+        ->assertSee('Copy report')
+        ->assertSee('data-copy="[error] Boom ×2"', false)
+        ->assertSee('POST https://api.beispiel.ch/save → 500 (120 ms)')
         ->assertSee('1541 × 947')
         ->assertSee('Europe/Zurich')
         ->assertSee('Boom')
@@ -103,7 +110,18 @@ it('shows the feedback page in the browser with all form details', function (): 
     $csp = (string) $response->headers->get('Content-Security-Policy');
     preg_match("/'nonce-([^']+)'/", $csp, $nonce);
     expect($csp)->toContain("default-src 'none'")->toContain("img-src 'self'")->toContain("frame-ancestors 'none'")
-        ->and($response->getContent())->toContain('<style nonce="'.$nonce[1].'">')->not->toContain('<script');
+        ->and($csp)->toContain("script-src 'nonce-{$nonce[1]}'")
+        ->and($response->getContent())->toContain('<style nonce="'.$nonce[1].'">')->toContain('<script nonce="'.$nonce[1].'">')
+        ->and(substr_count((string) $response->getContent(), '<script'))->toBe(1);
+    // "Copy report": plain text with the message, the environment and every log line.
+    preg_match('#data-copy="(Feedback [^"]+)"#', (string) $response->getContent(), $report);
+    expect(html_entity_decode($report[1]))
+        ->toContain("Feedback {$entry->id} (Alpha)")
+        ->toContain('Die Schaltfläche «Speichern» reagiert nicht.')
+        ->toContain('Viewport: 1541 × 947')
+        ->toContain("Console:\n[error] Boom ×2")
+        ->toContain("Network:\nPOST https://api.beispiel.ch/save → 500 (120 ms)")
+        ->toContain('"plan": "pro"');
 });
 
 it('shows a completed entry without screenshot', function (): void {
@@ -130,7 +148,7 @@ it('escapes everything the browser sent', function (): void {
         ->not->toContain('<img src=x')
         ->not->toContain('href="javascript:')
         ->toContain('&lt;script&gt;alert(1)&lt;/script&gt;')
-        ->toContain('Console (2)');
+        ->toContain('Console <span class="count">2</span>');
 });
 
 it('downloads the screenshot inline and as attachment', function (): void {
