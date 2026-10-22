@@ -173,6 +173,7 @@ test('sends the full page with masks and burnt-in marks', async ({ page }, info)
         mask: px(points.x, points.y),
         ignored: px(points.ix, points.iy),
         mark: px(100, 650),
+        header: px(5, 5),
       };
     },
     { url: `/s/${id}/__shot/0`, points: masked },
@@ -181,6 +182,8 @@ test('sends the full page with masks and burnt-in marks', async ({ page }, info)
   expect(pixels.w).toBe(pageSize.w);
   expect(pixels.h).toBe(pageSize.h);
   const near = (a: number[], b: number[], d = 40) => a.every((v, i) => Math.abs(v - (b[i] as number)) <= d);
+  // The white header, not the body color that a blank render falls back to.
+  expect(near(pixels.header, [255, 255, 255], 6), `header ${pixels.header}`).toBe(true);
   expect(near(pixels.mask, [0xc9, 0xd1, 0xdc]), `mask ${pixels.mask}`).toBe(true);
   expect(near(pixels.ignored, [0, 255, 0], 80), `ignored ${pixels.ignored}`).toBe(false);
   expect(near(pixels.mark, [0xe0, 0x2b, 0x20], 60), `mark ${pixels.mark}`).toBe(true);

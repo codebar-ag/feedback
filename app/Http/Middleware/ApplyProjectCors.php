@@ -14,7 +14,8 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Dynamic CORS per project. Answers the preflight and sets
  * Access-Control-Allow-Origin to exactly the requesting origin, but only if
- * the project allows it. Never "*", never with credentials.
+ * the project allows it. Never "*", never with credentials. Refused
+ * GET requests only get Access-Control-Allow-Origin, so the widget can read the 403.
  */
 final class ApplyProjectCors
 {
@@ -40,6 +41,10 @@ final class ApplyProjectCors
             $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Idempotency-Key');
             $response->headers->set('Access-Control-Expose-Headers', 'Retry-After');
             $response->headers->set('Access-Control-Max-Age', '600');
+        } elseif ($origin !== null && $request->isMethod('GET')) {
+            // Lets the widget read the 403 and stay hidden instead of mistaking it for a network error.
+            // The preflight stays refused, so a foreign page still cannot send.
+            $response->headers->set('Access-Control-Allow-Origin', $origin);
         }
 
         return $response;

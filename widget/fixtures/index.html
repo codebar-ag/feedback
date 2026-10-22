@@ -22,6 +22,8 @@
       </section>
       <section class="tall" id="tall"><p>Langer Inhalt zum Scrollen.</p></section>
       <section id="end"><p>Ende der Seite.</p></section>
+      <!-- Alpine/Vue shorthand attributes are no valid XML names and used to blank the whole screenshot. -->
+      <template x-for="toast in toasts" :key="toast.id"><div :class="{ open: toast.open }" @click="close()"></div></template>
     </main>
     <script type="module">
       import { boot } from '/fixtures/host.js';

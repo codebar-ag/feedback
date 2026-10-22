@@ -58,15 +58,22 @@ export function resolveOptions(o: FeedbackOptions): ResolvedOptions {
 
 const CONFIG_TTL = 10 * 60 * 1000;
 
+export interface ProjectConfig {
+  /** False when the API refuses this page (403: origin or IP not allowed): the widget stays hidden. */
+  allowed: boolean;
+  primary: string | null;
+}
+
 /**
  * GET /v1/projects/{key}/config with 5 s timeout, cached for 10 minutes in
- * sessionStorage. Returns the project color or null (widget stays black).
+ * sessionStorage. Returns the project color, or null (widget stays black)
+ * when the API is not reachable. A 403 marks the page as not allowed.
  */
-export async function loadProjectColor(endpoint: string, projectKey: string, fetchFn: typeof fetch): Promise<string | null> {
+export async function loadProjectConfig(endpoint: string, projectKey: string, fetchFn: typeof fetch): Promise<ProjectConfig> {
   const cacheKey = `cbf:${projectKey}:config`;
   try {
     const cached = JSON.parse(sessionStorage.getItem(cacheKey) ?? 'null') as { t: number; primary: string | null } | null;
-    if (cached && Date.now() - cached.t < CONFIG_TTL) return cached.primary;
+    if (cached && Date.now() - cached.t < CONFIG_TTL) return { allowed: true, primary: cached.primary };
   } catch {
     // no cache
   }
@@ -78,7 +85,8 @@ export async function loadProjectColor(endpoint: string, projectKey: string, fet
       mode: 'cors',
       signal: controller.signal,
     });
-    if (!res.ok) return null;
+    if (res.status === 403) return { allowed: false, primary: null };
+    if (!res.ok) return { allowed: true, primary: null };
     const data = (await res.json()) as { theme?: { primary?: string } };
     const primary = typeof data.theme?.primary === 'string' ? data.theme.primary : null;
     try {
@@ -86,9 +94,9 @@ export async function loadProjectColor(endpoint: string, projectKey: string, fet
     } catch {
       // ignore
     }
-    return primary;
+    return { allowed: true, primary };
   } catch {
-    return null;
+    return { allowed: true, primary: null };
   } finally {
     clearTimeout(timer);
   }

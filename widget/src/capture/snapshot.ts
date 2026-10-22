@@ -28,6 +28,17 @@ export class CaptureError extends Error {
 
 const MAX_BYTES = 3 * 1024 * 1024;
 
+// The page is rendered as an SVG image, which is parsed as XML. A single attribute that is not a valid XML name,
+// such as Alpine's or Vue's ":key" or "@click", makes the browser drop the whole image and the screenshot stays blank.
+const XML_NAME = /^[A-Za-z_\u00C0-\uFFFF][\w.\-:\u00B7\u00C0-\uFFFF]*$/;
+
+export function dropInvalidAttributes(node: Node): void {
+  if (!(node instanceof Element)) return;
+  for (const { name } of Array.from(node.attributes)) {
+    if (!XML_NAME.test(name)) node.removeAttribute(name);
+  }
+}
+
 export function toJpeg(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob((b) => (b ? resolve(b) : reject(new CaptureError('canvas_limit'))), 'image/jpeg', quality);
@@ -69,6 +80,7 @@ export async function capturePage(options: CaptureOptions): Promise<CaptureResul
         backgroundColor: background && background !== 'rgba(0, 0, 0, 0)' ? background : '#FFFFFF',
         filter: (node) => !(node instanceof Element && (options.exclude.includes(node) || (ignore !== '' && node.matches(ignore)))),
         timeout: options.timeoutMs ?? 15_000,
+        onCloneEachNode: dropInvalidAttributes,
       }),
       timeout,
     ]);

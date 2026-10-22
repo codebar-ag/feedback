@@ -216,6 +216,7 @@ All commands accept `--json`. Changing commands accept `--by="Name"`, which is r
 
 - **Origins**: `https://app.example.com` exact, `https://*.example.com` all subdomains, `http://localhost:*` any port, `*` any origin (needs `--allow-any-origin`).
 - **IPs**: single addresses or CIDR ranges, IPv4 and IPv6. No IPs means no restriction. A request must match the origins **and** the IPs.
+- **Visibility**: the widget only appears on pages the API accepts. It asks for the project config first and removes itself on a `403`, so a page outside the origins or IPs never shows a button. If the API cannot be reached, the widget still appears, in black.
 - **Color**: `black`, `white` or a hex value. Text becomes white or dark blue, whichever has more contrast, and button tones are adjusted until they reach 4.5:1.
 
 ## Configuration

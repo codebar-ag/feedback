@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { loadProjectColor, resolveOptions } from '../../src/config';
+import { loadProjectConfig, resolveOptions } from '../../src/config';
 
 describe('options', () => {
   it('applies the defaults', () => {
@@ -63,38 +63,46 @@ describe('options', () => {
   });
 });
 
-describe('project color', () => {
+describe('project config', () => {
   it('loads and caches the color for 10 minutes', async () => {
     const fetch = vi.fn(async () => new Response(JSON.stringify({ theme: { primary: '#0A7C66' } })));
-    expect(await loadProjectColor('https://api', 'k1', fetch)).toBe('#0A7C66');
-    expect(await loadProjectColor('https://api', 'k1', fetch)).toBe('#0A7C66');
+    expect(await loadProjectConfig('https://api', 'k1', fetch)).toEqual({ allowed: true, primary: '#0A7C66' });
+    expect(await loadProjectConfig('https://api', 'k1', fetch)).toEqual({ allowed: true, primary: '#0A7C66' });
     expect(fetch).toHaveBeenCalledExactlyOnceWith('https://api/v1/projects/k1/config', expect.objectContaining({ credentials: 'omit' }));
     vi.spyOn(Date, 'now').mockReturnValue(Date.now() + 11 * 60 * 1000);
-    await loadProjectColor('https://api', 'k1', fetch);
+    await loadProjectConfig('https://api', 'k1', fetch);
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
-  it('returns null when the API is not reachable', async () => {
+  it('marks the page as not allowed on 403 and does not cache it', async () => {
+    const fetch = vi.fn(async () => new Response('{"error":{"code":"origin_not_allowed"}}', { status: 403 }));
+    expect(await loadProjectConfig('https://api', 'k2', fetch)).toEqual({ allowed: false, primary: null });
+    await loadProjectConfig('https://api', 'k2', fetch);
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('stays allowed without a color when the API is not reachable', async () => {
+    const offline = { allowed: true, primary: null };
     expect(
-      await loadProjectColor(
-        'https://api',
-        'k2',
-        vi.fn(async () => new Response('', { status: 403 })),
-      ),
-    ).toBeNull();
-    expect(
-      await loadProjectColor(
+      await loadProjectConfig(
         'https://api',
         'k3',
         vi.fn(async () => Promise.reject(new TypeError('x'))),
       ),
-    ).toBeNull();
+    ).toEqual(offline);
     expect(
-      await loadProjectColor(
+      await loadProjectConfig(
         'https://api',
         'k4',
+        vi.fn(async () => new Response('', { status: 500 })),
+      ),
+    ).toEqual(offline);
+    expect(
+      await loadProjectConfig(
+        'https://api',
+        'k5',
         vi.fn(async () => new Response('{}')),
       ),
-    ).toBeNull();
+    ).toEqual(offline);
   });
 });
