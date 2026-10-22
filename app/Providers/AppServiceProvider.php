@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Checks\NightwatchIssuesCheck;
 use App\Http\Middleware\ResolveProject;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -38,6 +39,7 @@ final class AppServiceProvider extends ServiceProvider
             DebugModeCheck::new(),
             EnvironmentCheck::new()->if($this->app->isProduction()),
             SecurityAdvisoriesCheck::new()->lastDayOfMonth(),
+            NightwatchIssuesCheck::new()->if(filled(config('default.nightwatch.api_token')) && filled(config('default.nightwatch.application_id'))),
         ]);
     }
 
