@@ -6,8 +6,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/codebar-ag/feedback/actions/workflows/tests.yml"><img src="https://github.com/codebar-ag/feedback/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
-  <a href="https://github.com/codebar-ag/feedback/actions/workflows/e2e.yml"><img src="https://github.com/codebar-ag/feedback/actions/workflows/e2e.yml/badge.svg" alt="E2E"></a>
+  <a href="https://github.com/codebar-ag/feedback.codebar.ch/actions/workflows/pest_database_matrix_pull_request.yml"><img src="https://github.com/codebar-ag/feedback.codebar.ch/actions/workflows/pest_database_matrix_pull_request.yml/badge.svg?branch=main" alt="Tests"></a>
+  <a href="https://github.com/codebar-ag/feedback.codebar.ch/actions/workflows/e2e.yml"><img src="https://github.com/codebar-ag/feedback.codebar.ch/actions/workflows/e2e.yml/badge.svg" alt="E2E"></a>
   <a href="https://www.npmjs.com/package/@codebar-ag/feedback-widget"><img src="https://img.shields.io/npm/v/@codebar-ag/feedback-widget?label=npm" alt="npm"></a>
   <img src="https://img.shields.io/badge/PHP-8.5-777BB4?logo=php&logoColor=white" alt="PHP 8.5">
   <img src="https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white" alt="Laravel 13">
@@ -173,7 +173,7 @@ No build step needed:
 </script>
 ```
 
-Each [release](https://github.com/codebar-ag/feedback/releases) lists the SRI hash for `integrity="…"`.
+Each [release](https://github.com/codebar-ag/feedback.codebar.ch/releases) lists the SRI hash for `integrity="…"`.
 
 ### Laravel example
 
