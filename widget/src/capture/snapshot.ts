@@ -28,6 +28,21 @@ export class CaptureError extends Error {
 
 const MAX_BYTES = 3 * 1024 * 1024;
 
+/** XML-safe attribute name without a namespace prefix. */
+const XML_NAME = /^[A-Za-z_][\w.-]*$/;
+
+/**
+ * The clone is rendered as SVG, so it has to be valid XML. Framework attributes such as
+ * Alpine's `:class`, `x-on:click` or Vue's `v-bind:href` are not, and a single one makes the
+ * browser render the whole page as an empty image. They carry no styling, so drop them.
+ */
+export function stripInvalidAttributes(node: Node): void {
+  if (!(node instanceof Element)) return;
+  for (const attr of Array.from(node.attributes)) {
+    if (attr.namespaceURI === null && !XML_NAME.test(attr.name)) node.removeAttribute(attr.name);
+  }
+}
+
 export function toJpeg(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob((b) => (b ? resolve(b) : reject(new CaptureError('canvas_limit'))), 'image/jpeg', quality);
@@ -68,6 +83,7 @@ export async function capturePage(options: CaptureOptions): Promise<CaptureResul
         scale,
         backgroundColor: background && background !== 'rgba(0, 0, 0, 0)' ? background : '#FFFFFF',
         filter: (node) => !(node instanceof Element && (options.exclude.includes(node) || (ignore !== '' && node.matches(ignore)))),
+        onCloneEachNode: stripInvalidAttributes,
         timeout: options.timeoutMs ?? 15_000,
       }),
       timeout,

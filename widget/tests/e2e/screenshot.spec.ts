@@ -208,6 +208,46 @@ test('sends the full page with masks and burnt-in marks', async ({ page }, info)
   expect(annotations[0]).toEqual({ type: 'rect', x: 100, y: 650, w: 200, h: 110 });
 });
 
+test('framework attributes like :class or x-on:click do not blank the screenshot', async ({ page }, info) => {
+  const id = sid(info);
+  const x = w(page);
+  await page.evaluate(() => {
+    const el = document.createElement('div');
+    el.id = 'alpine';
+    el.style.cssText = 'width:120px;height:120px;background:rgb(0,0,255)';
+    for (const name of [':class', 'x-on:click', 'x-bind:title', '@click']) el.setAttribute(name, 'x');
+    const tpl = document.createElement('template');
+    tpl.innerHTML = '<div :role="a" x-on:toast-close="b"></div>';
+    document.getElementById('intro')!.append(el, tpl);
+  });
+  await fill(page, 'a@b.ch', 'Alpine Seite');
+  await takeShot(page);
+  await x.done.click();
+  await x.submit.click();
+  await expect(x.success).toBeVisible();
+
+  const point = await page.evaluate(() => {
+    const r = document.getElementById('alpine')!.getBoundingClientRect();
+    return { x: r.left + scrollX + 60, y: r.top + scrollY + 60 };
+  });
+  const pixel = await page.evaluate(
+    async ({ url, point }) => {
+      const img = new Image();
+      img.src = url;
+      await img.decode();
+      const c = document.createElement('canvas');
+      c.width = img.naturalWidth;
+      c.height = img.naturalHeight;
+      const ctx = c.getContext('2d')!;
+      ctx.drawImage(img, 0, 0);
+      return Array.from(ctx.getImageData(point.x, point.y, 1, 1).data.slice(0, 3));
+    },
+    { url: `/s/${id}/__shot/0`, point },
+  );
+  const [r, g, b] = pixel as [number, number, number];
+  expect(r < 80 && g < 80 && b > 140, `pixel ${pixel}`).toBe(true);
+});
+
 test('a failed screenshot keeps the camera usable and sends without image', async ({ page }, info) => {
   const id = sid(info);
   const x = w(page);
