@@ -32,3 +32,6 @@ Thumbs.db
 /e2e/playwright-report
 /public/widget
 /resources/widget
+
+# Pest browser test failure screenshots
+/tests/Browser/Screenshots/

@@ -1,0 +1,119 @@
+name: Pull Request | CI Pest Browser
+
+on: pull_request
+
+# A new push cancels the run it replaces.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci_pest_browser:
+    # Public repository: GitHub-hosted runners only, never the self-hosted group.
+    runs-on: ubuntu-latest
+    name: pull-request | ci pest browser
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: laravel_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432
+
+    env:
+      PHP_VERSION: 8.5
+      NODE_VERSION: 26
+
+    steps:
+      # CI always tests against PostgreSQL. These variables beat .env and the
+      # phpunit.xml <env> defaults (in-memory SQLite). The service gets a
+      # Docker-assigned host port.
+      - name: Point the app at the Postgres service
+        run: |
+          {
+            echo "DB_CONNECTION=pgsql"
+            echo "DB_HOST=127.0.0.1"
+            echo "DB_PORT=${{ job.services.postgres.ports['5432'] }}"
+            echo "DB_DATABASE=laravel_test"
+            echo "DB_USERNAME=postgres"
+            echo "DB_PASSWORD=postgres"
+            echo "DB_URL="
+          } >> "$GITHUB_ENV"
+
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup PHP Environment
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: dom, curl, fileinfo, pgsql, pdo_pgsql, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick
+
+      - name: Prepare the .env file
+        run: cp .env.example .env
+
+      - name: Cache Composer Dependencies
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.composer/cache/files
+            ~/.composer/cache/repo
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install Composer Dependencies
+        run: composer install --no-progress --prefer-dist --no-interaction --optimize-autoloader
+
+      - name: Publish Laravel assets
+        run: php artisan vendor:publish --tag=laravel-assets --ansi --force
+
+      - name: Setup PostgreSQL Database
+        run: |
+          until pg_isready -h localhost -p "$DB_PORT" -U postgres; do sleep 1; done
+
+      - name: Generate App Key & Run Migrations
+        run: |
+          php artisan key:generate
+          php artisan migrate:fresh
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install NPM Dependencies
+        run: npm ci
+
+      - name: Build Frontend Assets
+        run: npm run build
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Execute Pest Browser Tests
+        run: ./vendor/bin/pest tests/Browser
+
+      - name: Store Log Artifacts
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: Store report artifacts
+          path: ./storage/logs
+
+      - name: Store Screenshots
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: Browser Screenshots
+          path: ./tests/Browser/Screenshots
+          if-no-files-found: ignore
