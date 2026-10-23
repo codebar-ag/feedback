@@ -276,6 +276,7 @@ php artisan feedback:project:list
 php artisan feedback:project:show {key}
 php artisan feedback:project:update {key} --add-origin=https://staging.example.com --color=white --deactivate
 php artisan feedback:project:rotate-key {key}
+php artisan feedback:project:delete {key} [--force] [--by="Name"]
 
 php artisan feedback:list --open --project={key}
 php artisan feedback:show {id}
