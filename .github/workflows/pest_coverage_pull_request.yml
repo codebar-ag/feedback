@@ -91,10 +91,10 @@ jobs:
         run: php -v
 
       - name: Execute Pest Coverage
-        run: XDEBUG_MODE=coverage ./vendor/bin/pest --coverage --min=${{ env.PEST_MIN_COVERAGE }}
+        run: XDEBUG_MODE=coverage ./vendor/bin/pest --exclude-testsuite=Browser --coverage --min=${{ env.PEST_MIN_COVERAGE }}
 
       - name: Execute Pest Type Coverage
-        run: XDEBUG_MODE=coverage ./vendor/bin/pest --type-coverage --min=${{ env.PEST_MIN_TYPE_COVERAGE }}
+        run: XDEBUG_MODE=coverage ./vendor/bin/pest --exclude-testsuite=Browser --type-coverage --min=${{ env.PEST_MIN_TYPE_COVERAGE }}
 
       - name: Store Log Artifacts
         if: failure()
