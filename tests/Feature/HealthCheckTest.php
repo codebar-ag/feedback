@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Spatie\Health\Checks\Checks\DatabaseCheck;
+use App\Checks\DatabaseCheck;
 use Spatie\Health\Facades\Health;
 
 beforeEach(function (): void {
@@ -27,9 +27,24 @@ it('registers the production checks and schedules health:check', function (): vo
     $this->refreshApplication();
 
     expect(collect(Health::registeredChecks())->map(fn ($c): string => class_basename($c))->all())
-        ->toContain('DatabaseCheck', 'DebugModeCheck', 'EnvironmentCheck', 'SecurityAdvisoriesCheck')
-        ->not->toContain('CacheCheck')
-        ->not->toContain('OptimizedAppCheck');
+        ->toContain(
+            'DatabaseCheck',
+            'DatabaseConnectionCountCheck',
+            'DebugModeCheck',
+            'EnvironmentCheck',
+            'SecurityAdvisoriesCheck',
+            'ScheduleCheck',
+            'CacheCheck',
+            'OptimizedAppCheck',
+            'JobsCheck',
+            'FailedJobsCheck',
+            'PendingMigrationsCheck',
+            'ProductionConfigCheck',
+            'SchedulePolicyCheck',
+            'StorageRoundTripCheck',
+            'EntraClientSecretCheck',
+            'PostmarkTokenCheck',
+        );
 
     test()->artisan('schedule:list')->expectsOutputToContain('health:check')->assertExitCode(0);
 });

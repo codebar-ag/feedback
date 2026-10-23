@@ -1,0 +1,30 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Checks;
+
+use Illuminate\Support\Facades\DB;
+use Spatie\Health\Checks\Check;
+use Spatie\Health\Checks\Result;
+
+class FailedJobsCheck extends Check
+{
+    public function run(): Result
+    {
+        if (! DatabaseAvailability::isAvailable()) {
+            return Result::make()->shortSummary('no database')->ok();
+        }
+
+        $count = DB::table('failed_jobs')->count();
+
+        $result = Result::make();
+        $result->shortSummary("failed jobs table count: {$count}");
+
+        if ($count > 0) {
+            return $result->failed();
+        }
+
+        return $result->ok();
+    }
+}
