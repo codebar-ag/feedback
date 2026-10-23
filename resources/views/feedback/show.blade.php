@@ -47,7 +47,6 @@
         [role=tab][aria-selected=true] { color: var(--ink); }
         [role=tab][aria-selected=true]::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 2px; border-radius: 2px; background: var(--ink); }
         .count { font-size: 12px; padding: 1px 7px; border-radius: 999px; background: var(--sunken); color: var(--mute); }
-        .count.err { background: var(--err-bg); color: var(--err); }
 
         main { max-width: 1400px; margin: 0 auto; padding: 20px; }
         [role=tabpanel][hidden] { display: none; }
@@ -179,11 +178,6 @@
         <button role="tab" id="tab-feedback" aria-controls="panel-feedback" aria-selected="true" type="button">Feedback</button>
         <button role="tab" id="tab-technical" aria-controls="panel-technical" aria-selected="false" tabindex="-1" type="button">
             Technical
-            @if ($consoleErrors > 0)
-                <span class="count err">{{ $consoleErrors }} {{ $consoleErrors === 1 ? 'error' : 'errors' }}</span>
-            @elseif ($console !== [])
-                <span class="count">{{ count($console) }}</span>
-            @endif
         </button>
     </div>
 </header>
@@ -268,8 +262,8 @@
                             <li class="{{ in_array($row['type'], ['error', 'warn'], true) ? $row['type'] : '' }}">
                                 <span class="level {{ $row['type'] }}">{{ $row['type'] !== '' ? $row['type'] : 'log' }}</span>
                                 <div class="entry"><span class="entry-text">{{ $row['message'] }}</span>
-                                    @if ($row['source'] !== '' || (int) $row['count'] > 1)
-                                        <span class="entry-meta">{{ $row['source'] }}{{ $row['line'] !== '' ? ':'.$row['line'] : '' }}{{ $row['column'] !== '' ? ':'.$row['column'] : '' }}{{ (int) $row['count'] > 1 ? ' · ×'.$row['count'] : '' }}</span>
+                                    @if ($row['source'] !== '')
+                                        <span class="entry-meta">{{ $row['source'] }}{{ $row['line'] !== '' ? ':'.$row['line'] : '' }}{{ $row['column'] !== '' ? ':'.$row['column'] : '' }}</span>
                                     @endif
                                     @if ($row['stack'] !== '')
                                         <details><summary>Stack trace</summary><pre>{{ $row['stack'] }}</pre></details>
@@ -297,7 +291,9 @@
                             <li>
                                 <span class="level s{{ substr($row['status'], 0, 1) }}">{{ $row['status'] !== '' && $row['status'] !== '0' ? $row['status'] : 'ERR' }}</span>
                                 <div class="entry"><span class="entry-text">{{ $row['method'] }} {{ $row['url'] }}</span>
-                                    <span class="entry-meta">{{ $row['duration'] !== '' ? $row['duration'].' ms' : '' }}{{ (int) $row['count'] > 1 ? ' · ×'.$row['count'] : '' }}</span>
+                                    @if ($row['duration'] !== '')
+                                        <span class="entry-meta">{{ $row['duration'] }} ms</span>
+                                    @endif
                                 </div>
                                 <button class="icon-btn" type="button" data-copy="{{ \App\Http\Controllers\FeedbackPageController::networkLine($row) }}" aria-label="Copy request" title="Copy"><svg><use href="#i-copy"/></svg></button>
                             </li>

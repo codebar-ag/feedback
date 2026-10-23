@@ -35,7 +35,7 @@ it('shows the message, the sender and the screenshot', function (): void {
         ->assertSee('Die Schaltfläche «Speichern» reagiert nicht.')
         ->assertSee('Anna Muster')
         ->assertSee('anna@beispiel.ch')
-        ->assertSee('1 console error')
+        ->assertSee('2 console errors')
         ->assertVisible('img[alt^="Screenshot of"]')
         ->assertNoJavaScriptErrors();
 
