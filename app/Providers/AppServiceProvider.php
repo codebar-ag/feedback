@@ -15,6 +15,7 @@ use Spatie\Activitylog\Models\Activity;
 use Spatie\Health\Checks\Checks\DatabaseCheck;
 use Spatie\Health\Checks\Checks\DebugModeCheck;
 use Spatie\Health\Checks\Checks\EnvironmentCheck;
+use Spatie\Health\Checks\Checks\ScheduleCheck;
 use Spatie\Health\Facades\Health;
 use Spatie\SecurityAdvisoriesHealthCheck\SecurityAdvisoriesCheck;
 
@@ -40,6 +41,7 @@ final class AppServiceProvider extends ServiceProvider
             EnvironmentCheck::new()->if($this->app->isProduction()),
             SecurityAdvisoriesCheck::new()->lastDayOfMonth(),
             NightwatchIssuesCheck::new()->if(filled(config('default.nightwatch.api_token')) && filled(config('default.nightwatch.application_id'))),
+            ScheduleCheck::new()->heartbeatMaxAgeInMinutes(120),
         ]);
     }
 
