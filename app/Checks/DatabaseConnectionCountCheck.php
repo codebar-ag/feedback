@@ -4,32 +4,52 @@ declare(strict_types=1);
 
 namespace App\Checks;
 
+use Illuminate\Database\ConnectionResolverInterface;
+use Illuminate\Support\Str;
 use Spatie\Health\Checks\Checks\DatabaseConnectionCountCheck as SpatieDatabaseConnectionCountCheck;
 use Spatie\Health\Checks\Result;
 
 /**
- * spatie's DatabaseConnectionCountCheck with the agreed thresholds (warn
- * above 50, fail above 80), reporting ok for apps without a database and
- * for SQLite, which has no connection count.
+ * Informational only: reports the number of open connections of the app's
+ * own database and never warns or fails. On PostgreSQL only connections to
+ * the current database count, because Neon servers are shared between apps.
+ * Apps without a database and SQLite report ok.
  */
 class DatabaseConnectionCountCheck extends SpatieDatabaseConnectionCountCheck
 {
-    protected ?int $warningThreshold = 50;
-
-    protected int $errorThreshold = 80;
-
     public function run(): Result
     {
         if (! DatabaseAvailability::isAvailable()) {
             return Result::make()->shortSummary('no database')->ok();
         }
 
-        $connection = $this->connectionName ?? $this->getDefaultConnectionName();
-
-        if (config("database.connections.{$connection}.driver") === 'sqlite') {
+        if (config("database.connections.{$this->connection()}.driver") === 'sqlite') {
             return Result::make()->shortSummary('sqlite')->ok();
         }
 
-        return parent::run();
+        $connectionCount = $this->getConnectionCount();
+
+        return Result::make()
+            ->ok()
+            ->meta(['connection_count' => $connectionCount])
+            ->shortSummary($connectionCount.' '.Str::plural('connection', $connectionCount));
+    }
+
+    protected function getConnectionCount(): int
+    {
+        $connection = app(ConnectionResolverInterface::class)->connection($this->connection());
+
+        if ($connection->getDriverName() !== 'pgsql') {
+            return parent::getConnectionCount();
+        }
+
+        $count = $connection->scalar('select count(*) from pg_stat_activity where datname = current_database()');
+
+        return is_numeric($count) ? (int) $count : 0;
+    }
+
+    private function connection(): string
+    {
+        return $this->connectionName ?? $this->getDefaultConnectionName();
     }
 }

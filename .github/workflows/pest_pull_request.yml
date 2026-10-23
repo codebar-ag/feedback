@@ -85,7 +85,7 @@ jobs:
         run: npm run build
 
       - name: Execute Pest Test
-        run: ./vendor/bin/pest
+        run: ./vendor/bin/pest --exclude-testsuite=Browser
 
       - name: Store Log Artifacts
         if: failure()

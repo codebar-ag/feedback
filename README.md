@@ -423,6 +423,7 @@ npm run build                     # builds the widget and copies it to resources
 npm --prefix widget run check     # lint, types, Vitest, build, size budget
 npm --prefix widget run e2e       # Playwright: Chromium, Firefox, WebKit, mobile
 npm --prefix widget run e2e:full  # API and widget together
+composer test:browser             # Pest browser tests of the feedback page (npx playwright install chromium first)
 npm --prefix widget run dev       # playground with a mock API on http://localhost:4173/fixtures/index.html
 ```
 

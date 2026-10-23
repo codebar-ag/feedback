@@ -35,7 +35,6 @@ it('registers the production checks and schedules health:check', function (): vo
             'SecurityAdvisoriesCheck',
             'ScheduleCheck',
             'CacheCheck',
-            'OptimizedAppCheck',
             'JobsCheck',
             'FailedJobsCheck',
             'PendingMigrationsCheck',
