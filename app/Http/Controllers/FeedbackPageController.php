@@ -19,6 +19,9 @@ use Illuminate\Support\Str;
  */
 final class FeedbackPageController
 {
+    /** Upper bound of rows per log once repeated entries are spread out. */
+    private const MAX_ROWS = 500;
+
     public function __invoke(Request $request, FeedbackEntry $entry): Response
     {
         $expires = Carbon::createFromTimestamp($request->integer('expires'));
@@ -27,8 +30,8 @@ final class FeedbackPageController
         $shot = $entry->screenshot()->select(['entry_id', 'mime', 'width', 'height', 'bytes'])->first();
         $nonce = Str::random(32);
         $environment = self::environment($entry);
-        $console = self::rows($entry->console_log, ['type', 'message', 'count', 'source', 'line', 'column', 'stack']);
-        $network = self::rows($entry->network_log, ['method', 'url', 'status', 'duration', 'count']);
+        $console = self::rows($entry->console_log, ['type', 'message', 'source', 'line', 'column', 'stack']);
+        $network = self::rows($entry->network_log, ['method', 'url', 'status', 'duration']);
         $customData = $entry->custom_data === null || $entry->custom_data === [] ? null : (string) json_encode($entry->custom_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
         return response()->view('feedback.show', [
@@ -133,21 +136,20 @@ final class FeedbackPageController
     public static function consoleLine(array $row): string
     {
         $where = $row['source'] === '' ? '' : ' ('.$row['source'].($row['line'] === '' ? '' : ':'.$row['line']).($row['column'] === '' ? '' : ':'.$row['column']).')';
-        $times = (int) $row['count'] > 1 ? " ×{$row['count']}" : '';
 
-        return "[{$row['type']}] {$row['message']}{$where}{$times}".($row['stack'] === '' ? '' : "\n{$row['stack']}");
+        return "[{$row['type']}] {$row['message']}{$where}".($row['stack'] === '' ? '' : "\n{$row['stack']}");
     }
 
     /** @param array<string, string> $row */
     public static function networkLine(array $row): string
     {
-        $times = (int) $row['count'] > 1 ? " ×{$row['count']}" : '';
-
-        return trim("{$row['method']} {$row['url']} → {$row['status']}".($row['duration'] === '' ? '' : " ({$row['duration']} ms)").$times);
+        return trim("{$row['method']} {$row['url']} → {$row['status']}".($row['duration'] === '' ? '' : " ({$row['duration']} ms)"));
     }
 
     /**
-     * Logs come from the browser: every cell becomes a plain string.
+     * Logs come from the browser: every cell becomes a plain string. The
+     * widget folds identical consecutive entries into one with a count, the
+     * page lists every occurrence (at most MAX_ROWS per log).
      *
      * @param  array<mixed>|null  $log
      * @param  list<string>  $keys
@@ -169,7 +171,11 @@ final class FeedbackPageController
                 $row[$key] = is_scalar($value) ? (string) $value : '';
             }
 
-            $rows[] = $row;
+            $times = max(1, is_numeric($item['count'] ?? null) ? (int) $item['count'] : 1);
+
+            for ($i = 0; $i < $times && count($rows) < self::MAX_ROWS; $i++) {
+                $rows[] = $row;
+            }
         }
 
         return $rows;
