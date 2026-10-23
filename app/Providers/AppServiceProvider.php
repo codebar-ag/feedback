@@ -25,7 +25,6 @@ use Spatie\Activitylog\Models\Activity;
 use Spatie\Health\Checks\Checks\CacheCheck;
 use Spatie\Health\Checks\Checks\DebugModeCheck;
 use Spatie\Health\Checks\Checks\EnvironmentCheck;
-use Spatie\Health\Checks\Checks\OptimizedAppCheck;
 use Spatie\Health\Checks\Checks\ScheduleCheck;
 use Spatie\Health\Facades\Health;
 use Spatie\SecurityAdvisoriesHealthCheck\SecurityAdvisoriesCheck;
@@ -41,8 +40,7 @@ final class AppServiceProvider extends ServiceProvider
 
     /**
      * Checks for Oh Dear (OH_DEAR_HEALTH_CHECK_*) and `php artisan health:check`:
-     * the standard set agreed for all Laravel Cloud apps. OptimizedAppCheck
-     * needs `php artisan optimize` in the deploy command.
+     * the standard set agreed for all Laravel Cloud apps.
      */
     private function configureHealthChecks(): void
     {
@@ -52,7 +50,6 @@ final class AppServiceProvider extends ServiceProvider
             DatabaseCheck::new(),
             DatabaseConnectionCountCheck::new(),
             CacheCheck::new(),
-            OptimizedAppCheck::new(),
             ScheduleCheck::new()->heartbeatMaxAgeInMinutes(120),
             SecurityAdvisoriesCheck::new(),
             NightwatchIssuesCheck::new()->if(filled(config('default.nightwatch.api_token')) && filled(config('default.nightwatch.application_id'))),
