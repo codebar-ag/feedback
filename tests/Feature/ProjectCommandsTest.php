@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use App\Models\FeedbackEntry;
 use App\Models\FeedbackProject;
+use App\Models\FeedbackScreenshot;
 use Illuminate\Support\Facades\Artisan;
+use Spatie\Activitylog\Models\Activity;
 
 function artisanJson(string $command, array $parameters = []): array
 {
@@ -178,4 +180,37 @@ it('rotates the public key', function (): void {
 
     test()->artisan('feedback:project:rotate-key', ['key' => $old])->assertExitCode(1);
     test()->post("/v1/projects/{$old}/feedback", feedbackPayload(), ['Origin' => TEST_ORIGIN])->assertNotFound();
+});
+
+it('deletes a project with its feedback and screenshots', function (): void {
+    $project = FeedbackProject::factory()->create(['name' => 'Alt']);
+    $other = FeedbackEntry::factory()->create();
+    $entry = FeedbackEntry::factory()->for($project, 'project')->create();
+    FeedbackScreenshot::query()->create(['entry_id' => $entry->id, 'mime' => 'image/png', 'width' => 1, 'height' => 1, 'bytes' => 1, 'sha256' => str_repeat('0', 64), 'data' => 'x']);
+
+    test()->artisan('feedback:project:delete', ['key' => $project->public_key])
+        ->expectsConfirmation('Delete [Alt] and its 1 feedback entries? This cannot be undone.', 'no')
+        ->assertExitCode(1);
+    expect($project->exists())->toBeTrue();
+
+    test()->artisan('feedback:project:delete', ['key' => $project->public_key, '--force' => true, '--by' => 'Anna'])
+        ->expectsOutputToContain('Project [Alt] deleted with 1 feedback entries.')
+        ->assertExitCode(0);
+
+    expect(FeedbackProject::query()->find($project->id))->toBeNull()
+        ->and(FeedbackEntry::query()->pluck('id')->all())->toBe([$other->id])
+        ->and(FeedbackScreenshot::query()->count())->toBe(0)
+        ->and(Activity::query()->where('subject_id', $project->id)->latest('id')->first())
+        ->event->toBe('deleted')
+        ->properties->toArray()->toMatchArray(['by' => 'Anna']);
+
+    test()->post("/v1/projects/{$project->public_key}/feedback", feedbackPayload(), ['Origin' => TEST_ORIGIN])->assertNotFound();
+    test()->artisan('feedback:project:delete', ['key' => $project->id, '--force' => true])->assertExitCode(1);
+});
+
+it('deletes a project as JSON', function (): void {
+    $project = FeedbackProject::factory()->create();
+
+    expect(artisanJson('feedback:project:delete', ['key' => $project->id, '--force' => true]))
+        ->toMatchArray(['id' => $project->id, 'public_key' => $project->public_key, 'deleted_entries' => 0]);
 });
