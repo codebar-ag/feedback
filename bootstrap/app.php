@@ -26,6 +26,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Validation\ValidationException;
 use Spatie\Health\Commands\RunHealthChecksCommand;
+use Spatie\Health\Commands\ScheduleCheckHeartbeatCommand;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -36,7 +37,9 @@ return Application::configure(basePath: dirname(__DIR__))
         apiPrefix: '',
     )
     ->withSchedule(function (Schedule $schedule): void {
-        $schedule->command(RunHealthChecksCommand::class)->everyFiveMinutes();
+        // Hourly, to match Laravel Cloud's 60-minute wake-up: Cloud wakes the app for every due task, so anything more frequent keeps it from hibernating.
+        $schedule->command(RunHealthChecksCommand::class)->hourly();
+        $schedule->command(ScheduleCheckHeartbeatCommand::class)->hourly();
     })
     ->withMiddleware(function (Middleware $middleware): void {
         // CORS is applied per project by ApplyProjectCors, the post size check
