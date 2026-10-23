@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Checks\FailedJobsCheck;
+use App\Checks\JobsCheck;
 use App\Checks\NightwatchIssuesCheck;
+use App\Checks\PendingMigrationsCheck;
+use App\Checks\ProductionConfigCheck;
+use App\Checks\SchedulePolicyCheck;
 use App\Http\Middleware\ResolveProject;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -12,9 +17,11 @@ use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Activitylog\Models\Activity;
+use Spatie\Health\Checks\Checks\CacheCheck;
 use Spatie\Health\Checks\Checks\DatabaseCheck;
 use Spatie\Health\Checks\Checks\DebugModeCheck;
 use Spatie\Health\Checks\Checks\EnvironmentCheck;
+use Spatie\Health\Checks\Checks\OptimizedAppCheck;
 use Spatie\Health\Checks\Checks\ScheduleCheck;
 use Spatie\Health\Facades\Health;
 use Spatie\SecurityAdvisoriesHealthCheck\SecurityAdvisoriesCheck;
@@ -29,9 +36,9 @@ final class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Checks for Oh Dear (OH_DEAR_HEALTH_CHECK_*) and `php artisan health:check`.
-     * No cache or optimize checks: Laravel Cloud hibernates the app and does
-     * not cache config, so those would always fail.
+     * Checks for Oh Dear (OH_DEAR_HEALTH_CHECK_*) and `php artisan health:check`:
+     * the standard set agreed for all Laravel Cloud apps. OptimizedAppCheck
+     * needs `php artisan optimize` in the deploy command.
      */
     private function configureHealthChecks(): void
     {
@@ -39,9 +46,16 @@ final class AppServiceProvider extends ServiceProvider
             DatabaseCheck::new(),
             DebugModeCheck::new(),
             EnvironmentCheck::new()->if($this->app->isProduction()),
-            SecurityAdvisoriesCheck::new()->lastDayOfMonth(),
+            SecurityAdvisoriesCheck::new(),
             NightwatchIssuesCheck::new()->if(filled(config('default.nightwatch.api_token')) && filled(config('default.nightwatch.application_id'))),
             ScheduleCheck::new()->heartbeatMaxAgeInMinutes(120),
+            CacheCheck::new(),
+            OptimizedAppCheck::new(),
+            JobsCheck::new(),
+            FailedJobsCheck::new(),
+            PendingMigrationsCheck::new(),
+            ProductionConfigCheck::new()->if($this->app->isProduction()),
+            SchedulePolicyCheck::new(),
         ]);
     }
 
