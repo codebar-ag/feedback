@@ -240,7 +240,10 @@ test('the share link on the thank you screen and the team link open the feedback
   expect(artisanJson<Entry>('feedback:show', id).completed_at).toBeNull();
 
   // Tampered links reveal nothing. A request, not a navigation: Firefox never fires "load" for an empty 403.
-  const forged = await viewer.request.get(senderUrl.replace(/signature=./, 'signature=0'), {
+  // Flip the first signature character; replacing it with a fixed '0' left the link valid whenever the signature already started with 0.
+  const forgedUrl = senderUrl.replace(/signature=([0-9a-f])/, (_, first: string) => `signature=${first === '0' ? '1' : '0'}`);
+  expect(forgedUrl).not.toBe(senderUrl);
+  const forged = await viewer.request.get(forgedUrl, {
     headers: { 'Sec-Fetch-Mode': 'navigate', 'Sec-Fetch-Dest': 'document' },
   });
   expect(forged.status()).toBe(403);
