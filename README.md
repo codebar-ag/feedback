@@ -276,6 +276,7 @@ php artisan feedback:project:list
 php artisan feedback:project:show {key}
 php artisan feedback:project:update {key} --add-origin=https://staging.example.com --color=white --deactivate
 php artisan feedback:project:rotate-key {key}
+php artisan feedback:project:delete {key} [--force] [--by="Name"]
 
 php artisan feedback:list --open --project={key}
 php artisan feedback:show {id}
@@ -309,7 +310,7 @@ Changing commands accept `--by="Name"`, which is recorded in the activity log.
 - **IPs**: single addresses or CIDR ranges, IPv4 and IPv6. No IPs means no restriction. A request must match the origins **and** the IPs.
 - **Visibility**: the widget only appears on pages the API accepts. It asks for the project config first and removes itself on a `403`, so a page outside the origins or IPs never shows a button. If the API cannot be reached, the widget still appears, in black.
 - **Color**: `black`, `white` or a hex value. Text becomes white or dark blue, whichever has more contrast, and button tones are adjusted until they reach 4.5:1.
-- **Daily limit**: `--limit=500` caps the entries per project and day, `--deactivate` / `--activate` switch a project off and on without deleting anything, `rotate-key` replaces a leaked key.
+- **Daily limit**: `--limit=500` caps the entries per project and day, `--deactivate` / `--activate` switch a project off and on without deleting anything, `rotate-key` replaces a leaked key, `feedback:project:delete` removes a project with all its feedback and screenshots for good (asks first, `--force` skips the question).
 
 ## Feedback pages and share links
 
