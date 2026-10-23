@@ -12,6 +12,10 @@ class FailedJobsCheck extends Check
 {
     public function run(): Result
     {
+        if (! DatabaseAvailability::isAvailable()) {
+            return Result::make()->shortSummary('no database')->ok();
+        }
+
         $count = DB::table('failed_jobs')->count();
 
         $result = Result::make();

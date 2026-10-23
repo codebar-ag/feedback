@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Checks\DatabaseCheck;
+use App\Checks\DatabaseConnectionCountCheck;
+use App\Checks\EntraClientSecretCheck;
 use App\Checks\FailedJobsCheck;
 use App\Checks\JobsCheck;
 use App\Checks\NightwatchIssuesCheck;
 use App\Checks\PendingMigrationsCheck;
+use App\Checks\PostmarkTokenCheck;
 use App\Checks\ProductionConfigCheck;
 use App\Checks\SchedulePolicyCheck;
+use App\Checks\StorageRoundTripCheck;
 use App\Http\Middleware\ResolveProject;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -18,7 +23,6 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Health\Checks\Checks\CacheCheck;
-use Spatie\Health\Checks\Checks\DatabaseCheck;
 use Spatie\Health\Checks\Checks\DebugModeCheck;
 use Spatie\Health\Checks\Checks\EnvironmentCheck;
 use Spatie\Health\Checks\Checks\OptimizedAppCheck;
@@ -43,19 +47,23 @@ final class AppServiceProvider extends ServiceProvider
     private function configureHealthChecks(): void
     {
         Health::checks([
-            DatabaseCheck::new(),
             DebugModeCheck::new(),
-            EnvironmentCheck::new()->if($this->app->isProduction()),
-            SecurityAdvisoriesCheck::new(),
-            NightwatchIssuesCheck::new()->if(filled(config('default.nightwatch.api_token')) && filled(config('default.nightwatch.application_id'))),
-            ScheduleCheck::new()->heartbeatMaxAgeInMinutes(120),
+            EnvironmentCheck::new()->if(app()->isProduction()),
+            DatabaseCheck::new(),
+            DatabaseConnectionCountCheck::new(),
             CacheCheck::new(),
             OptimizedAppCheck::new(),
+            ScheduleCheck::new()->heartbeatMaxAgeInMinutes(120),
+            SecurityAdvisoriesCheck::new(),
+            NightwatchIssuesCheck::new()->if(filled(config('default.nightwatch.api_token')) && filled(config('default.nightwatch.application_id'))),
             JobsCheck::new(),
             FailedJobsCheck::new(),
             PendingMigrationsCheck::new(),
-            ProductionConfigCheck::new()->if($this->app->isProduction()),
+            ProductionConfigCheck::new()->if(app()->isProduction()),
             SchedulePolicyCheck::new(),
+            StorageRoundTripCheck::new(),
+            EntraClientSecretCheck::new(),
+            PostmarkTokenCheck::new(),
         ]);
     }
 

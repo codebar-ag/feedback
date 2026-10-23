@@ -20,6 +20,10 @@ class JobsCheck extends Check
 
     public function run(): Result
     {
+        if (! DatabaseAvailability::isAvailable()) {
+            return Result::make()->shortSummary('no database')->ok();
+        }
+
         $count = $this->currentJobsTableCount();
 
         $result = Result::make();

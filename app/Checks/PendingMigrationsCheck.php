@@ -20,6 +20,10 @@ final class PendingMigrationsCheck extends Check
 
     public function run(): Result
     {
+        if (! DatabaseAvailability::isAvailable()) {
+            return Result::make()->shortSummary('no database')->ok();
+        }
+
         $result = Result::make();
 
         try {
