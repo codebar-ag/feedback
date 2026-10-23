@@ -6,7 +6,7 @@ All notable changes to the API and the widget are documented here. The format fo
 
 ### Added
 
-- Feedback page redesign: screenshot first with the sender's message as a sticky, hideable card; technical details on a second tab with copy buttons for every value and log entry and "Copy report" as plain text; console errors highlighted and counted on the tab.
+- Feedback page redesign: screenshot first with the sender's message as a sticky, hideable card; technical details on a second tab with copy buttons for every value and log entry and "Copy report" as plain text; console errors highlighted. Repeated console entries and failed requests are listed one by one (at most 500 per log), each with its own copy button and in "Copy all", instead of a single row with ×N; no count badge on the tab.
 - Feedback pages behind signed, expiring links with all details, console and network log and the screenshot (inline and download).
 - `feedback:link {id}` creates team links that can complete and reopen the entry (`--by` is logged, `--read-only`, `--expires`).
 - The API returns a read-only share link after sending (`FEEDBACK_SHARE_LINK_MINUTES`, `0` turns it off); the widget shows it on the thank you screen with a copy button, `after_send` receives it as `url`.
