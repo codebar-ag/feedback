@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Checks\PostmarkTokenCheck;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Spatie\Health\Enums\Status;
@@ -40,4 +41,18 @@ it('passes without a request when the mailer is not postmark', function () {
 
     expect((new PostmarkTokenCheck)->run()->status->equals(Status::ok()))->toBeTrue();
     Http::assertNothingSent();
+})->group('unit', 'checks');
+
+it('fails when Postmark cannot be reached', function () {
+    config(['services.postmark.token' => 'token']);
+    Http::fake(fn () => throw new ConnectionException('timeout'));
+
+    expect((new PostmarkTokenCheck)->run()->shortSummary)->toBe('postmark unreachable');
+})->group('unit', 'checks');
+
+it('reports the HTTP status when Postmark gives no message', function () {
+    config(['services.postmark.token' => 'token']);
+    Http::fake(['api.postmarkapp.com/server' => Http::response('', 500)]);
+
+    expect((new PostmarkTokenCheck)->run()->getNotificationMessage())->toContain('500');
 })->group('unit', 'checks');

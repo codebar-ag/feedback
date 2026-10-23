@@ -19,17 +19,10 @@ use Throwable;
 final class EntraClientSecretCheck extends Check
 {
     /** @var list<array{0: string, 1: string}> config key and tenant key, in lookup order */
-    private array $sources = [['microsoft-entra-sso', 'tenant_id'], ['services.microsoft', 'tenant']];
+    private const array SOURCES = [['microsoft-entra-sso', 'tenant_id'], ['services.microsoft', 'tenant']];
 
     /** Placeholder secrets some configs fall back to when SSO is not set up. */
     private const array PLACEHOLDER_SECRETS = ['', 'not-configured'];
-
-    public function configKey(string $configKey, string $tenantKey = 'tenant_id'): self
-    {
-        $this->sources = [[$configKey, $tenantKey]];
-
-        return $this;
-    }
 
     public function run(): Result
     {
@@ -69,7 +62,7 @@ final class EntraClientSecretCheck extends Check
      */
     private function credentials(): ?array
     {
-        foreach ($this->sources as [$configKey, $tenantKey]) {
+        foreach (self::SOURCES as [$configKey, $tenantKey]) {
             $tenant = $this->configString("{$configKey}.{$tenantKey}");
             $clientId = $this->configString("{$configKey}.client_id");
             $clientSecret = $this->configString("{$configKey}.client_secret");

@@ -78,3 +78,12 @@ it('returns ok when job count drops during polling', function () {
 
     expect($result->status->equals(Status::ok()))->toBeTrue();
 })->group('unit', 'checks');
+
+it('reports ok with "no database" when the app has none', function () {
+    config(['health.uses_database' => false]);
+
+    $result = (new JobsCheck)->run();
+
+    expect($result->status->equals(Status::ok()))->toBeTrue()
+        ->and($result->shortSummary)->toBe('no database');
+})->group('unit', 'checks');

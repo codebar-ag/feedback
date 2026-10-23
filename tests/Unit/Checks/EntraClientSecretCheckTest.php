@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Checks\EntraClientSecretCheck;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Spatie\Health\Enums\Status;
@@ -53,3 +54,18 @@ it('passes without a request when no SSO is configured', function (?string $secr
         ->and($result->shortSummary)->toBe('no sso configured');
     Http::assertNothingSent();
 })->with([null, '', 'not-configured'])->group('unit', 'checks');
+
+it('reports the HTTP status when Entra gives no error code', function () {
+    Http::fake(['login.microsoftonline.com/*' => Http::response('', 500)]);
+
+    expect((new EntraClientSecretCheck)->run()->shortSummary)->toBe('http 500');
+})->group('unit', 'checks');
+
+it('fails when Entra cannot be reached', function () {
+    Http::fake(fn () => throw new ConnectionException('timeout'));
+
+    $result = (new EntraClientSecretCheck)->run();
+
+    expect($result->status->equals(Status::failed()))->toBeTrue()
+        ->and($result->shortSummary)->toBe('entra unreachable');
+})->group('unit', 'checks');

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Checks\StorageRoundTripCheck;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Health\Enums\Status;
 
@@ -28,4 +29,15 @@ it('fails when the disk throws', function () {
 
     expect($result->status->equals(Status::failed()))->toBeTrue()
         ->and($result->getNotificationMessage())->toContain('bucket gone');
+})->group('unit', 'checks');
+
+it('fails when the file reads back different content', function () {
+    config(['filesystems.default' => 's3', 'filesystems.disks.s3.driver' => 's3']);
+    $disk = Mockery::mock(Filesystem::class);
+    $disk->shouldReceive('put')->andReturnTrue();
+    $disk->shouldReceive('get')->andReturn('something else');
+    $disk->shouldReceive('delete')->andReturnTrue();
+    Storage::shouldReceive('disk')->with('s3')->andReturn($disk);
+
+    expect((new StorageRoundTripCheck)->run()->getNotificationMessage())->toContain('different content');
 })->group('unit', 'checks');

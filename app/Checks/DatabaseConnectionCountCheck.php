@@ -12,7 +12,7 @@ use Spatie\Health\Checks\Result;
  * above 50, fail above 80), reporting ok for apps without a database and
  * for SQLite, which has no connection count.
  */
-final class DatabaseConnectionCountCheck extends SpatieDatabaseConnectionCountCheck
+class DatabaseConnectionCountCheck extends SpatieDatabaseConnectionCountCheck
 {
     protected ?int $warningThreshold = 50;
 

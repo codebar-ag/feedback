@@ -34,3 +34,12 @@ it('returns failed when failed_jobs has rows', function () {
 
     DB::table('failed_jobs')->delete();
 })->group('unit', 'checks');
+
+it('reports ok with "no database" when the app has none', function () {
+    config(['health.uses_database' => false]);
+
+    $result = (new FailedJobsCheck)->run();
+
+    expect($result->status->equals(Status::ok()))->toBeTrue()
+        ->and($result->shortSummary)->toBe('no database');
+})->group('unit', 'checks');
