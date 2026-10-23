@@ -26,6 +26,7 @@
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.9",
         "pestphp/pest": "^5.0",
+        "pestphp/pest-plugin-browser": "^5.1",
         "pestphp/pest-plugin-laravel": "^5.0",
         "pestphp/pest-plugin-type-coverage": "^5.0"
     },
@@ -55,8 +56,9 @@
         "lint": "./vendor/bin/pint --test",
         "format": "./vendor/bin/pint",
         "analyse": "./vendor/bin/phpstan analyse --memory-limit=1G --no-progress",
-        "test": "./vendor/bin/pest --parallel --compact",
-        "test:coverage": "./vendor/bin/pest --coverage --min=90",
+        "test": "./vendor/bin/pest --exclude-testsuite=Browser --parallel --compact",
+        "test:coverage": "./vendor/bin/pest --exclude-testsuite=Browser --coverage --min=90",
+        "test:browser": "./vendor/bin/pest tests/Browser",
         "check": [
             "@lint",
             "@analyse",
